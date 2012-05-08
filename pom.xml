@@ -1,0 +1,125 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>uk.ac.ebi.fgpt</groupId>
+	<artifactId>sampletab-accessioner</artifactId>
+	<packaging>war</packaging>
+	<version>1.0-SNAPSHOT</version>
+	<name>SampleTab Web Accessioner</name>
+	<url>http://maven.apache.org</url>
+
+	<dependencies>
+		<!-- spring webmvc framework -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<version>3.0.3.RELEASE</version>
+		</dependency>
+
+		<!-- jackson json mapping library, describes mappings from java to json 
+			for model objects -->
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-mapper-asl</artifactId>
+			<version>1.5.3</version>
+		</dependency>
+
+		<!-- servlet - provided by container -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- logging dependencies -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.6.3</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.16</version>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- SampleTab dependencies -->
+		<dependency>
+			<groupId>uk.ac.ebi.fgpt</groupId>
+			<artifactId>sampletab-converters</artifactId>
+			<version>0.1-SNAPSHOT</version>
+		</dependency>
+
+		<!-- for file uploading -->
+		<dependency>
+			<groupId>commons-fileupload</groupId>
+			<artifactId>commons-fileupload</artifactId>
+			<version>1.2.2</version>
+		</dependency>
+
+
+	</dependencies>
+
+	<profiles>
+		<!-- profile for production, uses files from resources-production -->
+		<profile>
+			<id>production</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<build>
+				<resources>
+					<resource>
+						<directory>src/main/resources-production</directory>
+					</resource>
+				</resources>
+			</build>
+			<dependencies>
+			</dependencies>
+		</profile>
+
+		<!-- profile for development, uses files from resources-development -->
+		<profile>
+			<id>development</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<build>
+				<resources>
+					<resource>
+						<directory>src/main/resources-development</directory>
+					</resource>
+				</resources>
+			</build>
+			<dependencies>
+			</dependencies>
+		</profile>
+	</profiles>
+
+	<build>
+		<finalName>sampletab-accessioner</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<fork>true</fork>
+					<source>1.5</source>
+					<target>1.5</target> <!-- may need to be 1.7 eventually -->
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>tomcat-maven-plugin</artifactId>
+				<configuration>
+					<server>localhost</server>
+					<url>http://localhost:8080/manager/html</url>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
