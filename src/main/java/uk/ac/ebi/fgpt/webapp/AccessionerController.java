@@ -1,5 +1,7 @@
 package uk.ac.ebi.fgpt.webapp;
 
+import org.mged.magetab.error.ErrorCode;
+import org.mged.magetab.error.ErrorItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
+import uk.ac.ebi.arrayexpress2.magetab.listener.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.sampletab.datamodel.SampleData;
 import uk.ac.ebi.arrayexpress2.sampletab.parser.SampleTabParser;
 import uk.ac.ebi.arrayexpress2.sampletab.renderer.SampleTabWriter;
@@ -43,8 +46,6 @@ import javax.servlet.http.HttpSession;
 @Controller
 @RequestMapping
 public class AccessionerController {
-    
-    private SampleTabParser<SampleData> parser = new SampleTabParser<SampleData>();
     
     private String host;
     private int port;
@@ -83,19 +84,69 @@ public class AccessionerController {
         } catch (IOException e) {
             e.printStackTrace();
             log.error("Unable to recieve that SampleTab file. Contact administrator for more information.");
+            //TODO output nice webpage of error
             return;
-            //return "Unable to recieve that SampleTab file. Contact administrator for more information.";
             //note: maximum upload filesize specified in sampletab-accessioner-config.xml
         }
+        
+        //parse the input
+        SampleTabParser<SampleData> parser = new SampleTabParser<SampleData>();
+        final List<ErrorItem> errorItems;
+        errorItems = new ArrayList<ErrorItem>();
+        parser.addErrorItemListener(new ErrorItemListener() {
+            public void errorOccurred(ErrorItem item) {
+                errorItems.add(item);
+            }
+        });
+        
         SampleData st = null;
         try{
+            //TODO error listener
             st = parser.parse(is);
         } catch (ParseException e) {
             e.printStackTrace();
             log.error("Unable to parse that SampleTab file. Contact administrator for more information.");
+            //TODO output nice webpage of error
             return;
-            //return "Unable to parse that SampleTab file. Contact administrator for more information.";
         } 
+        
+        //see if parsing threw errors
+        if (!errorItems.isEmpty()) {
+            // there are error items, print them and fail
+            StringBuilder sb = new StringBuilder();
+            for (ErrorItem item : errorItems) {
+                ErrorCode code = null;
+                for (ErrorCode ec : ErrorCode.values()) {
+                    if (item.getErrorCode() == ec.getIntegerValue()) {
+                        code = ec;
+                        break;
+                    }
+                }
+
+                if (code != null) {
+                    sb.append("Listener reported error...").append("\n");
+                    sb.append("\tError Code: ").append(item.getErrorCode()).append(" [").append(code.getErrorMessage())
+                            .append("]").append("\n");
+                    sb.append("\tType: ").append(item.getErrorType()).append("\n");
+                    sb.append("\tFile: ").append(item.getParsedFile()).append("\n");
+                    sb.append("\tLine: ").append(item.getLine() != -1 ? item.getLine() : "n/a").append("\n");
+                    sb.append("\tColumn: ").append(item.getCol() != -1 ? item.getCol() : "n/a").append("\n");
+                    sb.append("\tAdditional comment: ").append(item.getComment()).append("\n");
+                } else {
+                    sb.append("Listener reported error...");
+                    sb.append("\tError Code: ").append(item.getErrorCode()).append("\n");
+                    sb.append("\tFile: ").append(item.getParsedFile()).append("\n");
+                    sb.append("\tLine: ").append(item.getLine() != -1 ? item.getLine() : "n/a").append("\n");
+                    sb.append("\tColumn: ").append(item.getCol() != -1 ? item.getCol() : "n/a").append("\n");
+                    sb.append("\tAdditional comment: ").append(item.getComment()).append("\n");
+                }
+                sb.append("\n");
+                log.error(sb.toString());
+                log.error("Unable to parse that SampleTab file. Contact administrator for more information.");
+            }
+            return;
+        }
+        
         
         //assign accessions
         Accessioner a;
@@ -105,37 +156,20 @@ public class AccessionerController {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
             log.error("Unable to connect to accession database. Contact administrator for more information.");
+            //TODO output nice webpage of error
             return;
-            //return "Unable to connect to accession database. Contact administrator for more information.";
         } catch (SQLException e) {
             e.printStackTrace();
             log.error("Unable to connect to accession database. Contact administrator for more information.");
+            //TODO output nice webpage of error
             return;
-            //return "Unable to connect to accession database. Contact administrator for more information.";
         } catch (ParseException e) {
             e.printStackTrace();
             log.error("Unable to assign accessions. Contact administrator for more information.");
+            //TODO output nice webpage of error
             return;
-            //return "Unable to assign accessions. Contact administrator for more information.";
         }
 
-        //convert it back to a string to be returned
-        //graph2tab library is not multi-threaded
-        /*
-        StringWriter out = new StringWriter();
-        synchronized(AccessionerController.class){
-            SampleTabWriter sampletabwriter = new SampleTabWriter(out);
-            try {
-                sampletabwriter.write(st);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return;
-                //return "Unable to output SampleTab. Contact administrator for more information.";
-            }
-        }
-        
-        return out.toString();
-        */
         //set it to be marked as a download file
         response.setContentType("application/octet-stream");
         //set the filename to download it as
