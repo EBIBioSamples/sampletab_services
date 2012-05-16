@@ -166,8 +166,8 @@ public class AccessionerController {
                 sb.append("\tAdditional comment: ").append(item.getComment()).append("\n");
                 sb.append("\n");
                 
-                respondSimpleError(response, sb.toString());
             }
+            respondSimpleError(response, sb.toString());
             return;
         }
         
