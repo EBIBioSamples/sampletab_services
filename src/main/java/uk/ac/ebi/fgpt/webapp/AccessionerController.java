@@ -74,6 +74,34 @@ public class AccessionerController {
         this.password = mysqlProperties.getProperty("password");
     }
     
+    public void respondSimpleError(HttpServletResponse response, String message){
+        //write error to log
+        log.error(message);
+        //write error to response
+        //TODO add prettyfication to EBI standards
+        Writer out = null;
+        try {
+            out = response.getWriter();
+            out.write(message);
+        } catch (IOException e) {
+            log.error("Unable to generate a simple error for user");
+            e.printStackTrace();
+        } finally {
+            if (out!= null){
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    //do nothing
+                }
+            }
+            try {
+                response.flushBuffer();
+            } catch (IOException e) {
+                //do nothing
+            }
+        }
+    }
+    
     @RequestMapping(value = "/accession", method = RequestMethod.POST)
     public void doAccession(@RequestParam("file")MultipartFile file, HttpServletResponse response) {
         
@@ -83,7 +111,7 @@ public class AccessionerController {
             is = file.getInputStream();
         } catch (IOException e) {
             e.printStackTrace();
-            log.error("Unable to recieve that SampleTab file. Contact administrator for more information.");
+            respondSimpleError(response, "Unable to recieve that SampleTab file. Contact administrator for more information.");
             //TODO output nice webpage of error
             return;
             //note: maximum upload filesize specified in sampletab-accessioner-config.xml
@@ -105,7 +133,7 @@ public class AccessionerController {
             st = parser.parse(is);
         } catch (ParseException e) {
             e.printStackTrace();
-            log.error("Unable to parse that SampleTab file. Contact administrator for more information.");
+            respondSimpleError(response, "Unable to parse that SampleTab file. Contact administrator for more information.");
             //TODO output nice webpage of error
             return;
         } 
@@ -115,6 +143,7 @@ public class AccessionerController {
             // there are error items, print them and fail
             StringBuilder sb = new StringBuilder();
             for (ErrorItem item : errorItems) {
+                //look up the error code by ID to get human-readable string
                 ErrorCode code = null;
                 for (ErrorCode ec : ErrorCode.values()) {
                     if (item.getErrorCode() == ec.getIntegerValue()) {
@@ -128,21 +157,16 @@ public class AccessionerController {
                     sb.append("\tError Code: ").append(item.getErrorCode()).append(" [").append(code.getErrorMessage())
                             .append("]").append("\n");
                     sb.append("\tType: ").append(item.getErrorType()).append("\n");
-                    sb.append("\tFile: ").append(item.getParsedFile()).append("\n");
-                    sb.append("\tLine: ").append(item.getLine() != -1 ? item.getLine() : "n/a").append("\n");
-                    sb.append("\tColumn: ").append(item.getCol() != -1 ? item.getCol() : "n/a").append("\n");
-                    sb.append("\tAdditional comment: ").append(item.getComment()).append("\n");
                 } else {
                     sb.append("Listener reported error...");
                     sb.append("\tError Code: ").append(item.getErrorCode()).append("\n");
-                    sb.append("\tFile: ").append(item.getParsedFile()).append("\n");
-                    sb.append("\tLine: ").append(item.getLine() != -1 ? item.getLine() : "n/a").append("\n");
-                    sb.append("\tColumn: ").append(item.getCol() != -1 ? item.getCol() : "n/a").append("\n");
-                    sb.append("\tAdditional comment: ").append(item.getComment()).append("\n");
                 }
+                sb.append("\tLine: ").append(item.getLine() != -1 ? item.getLine() : "n/a").append("\n");
+                sb.append("\tColumn: ").append(item.getCol() != -1 ? item.getCol() : "n/a").append("\n");
+                sb.append("\tAdditional comment: ").append(item.getComment()).append("\n");
                 sb.append("\n");
-                log.error(sb.toString());
-                log.error("Unable to parse that SampleTab file. Contact administrator for more information.");
+                
+                respondSimpleError(response, sb.toString());
             }
             return;
         }
@@ -155,17 +179,17 @@ public class AccessionerController {
             st = a.convert(st);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
-            log.error("Unable to connect to accession database. Contact administrator for more information.");
+            respondSimpleError(response, "Unable to connect to accession database. Contact administrator for more information.");
             //TODO output nice webpage of error
             return;
         } catch (SQLException e) {
             e.printStackTrace();
-            log.error("Unable to connect to accession database. Contact administrator for more information.");
+            respondSimpleError(response, "Unable to connect to accession database. Contact administrator for more information.");
             //TODO output nice webpage of error
             return;
         } catch (ParseException e) {
             e.printStackTrace();
-            log.error("Unable to assign accessions. Contact administrator for more information.");
+            respondSimpleError(response, "Unable to assign accessions. Contact administrator for more information.");
             //TODO output nice webpage of error
             return;
         }
@@ -183,8 +207,8 @@ public class AccessionerController {
             response.flushBuffer();
         } catch (IOException e) {
             e.printStackTrace();
+            respondSimpleError(response, "Unable to output SampleTab. Contact administrator for more information.");
             return;
-            //return "Unable to output SampleTab. Contact administrator for more information.";
         }
         
     }
