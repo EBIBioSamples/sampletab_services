@@ -30,6 +30,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 
@@ -82,7 +83,9 @@ public class AccessionerController {
         Writer out = null;
         try {
             out = response.getWriter();
-            out.write(message);
+            
+            
+            //out.write(message);
         } catch (IOException e) {
             log.error("Unable to generate a simple error for user");
             e.printStackTrace();
@@ -111,8 +114,7 @@ public class AccessionerController {
             is = file.getInputStream();
         } catch (IOException e) {
             e.printStackTrace();
-            respondSimpleError(response, "Unable to recieve that SampleTab file. Contact administrator for more information.");
-            //TODO output nice webpage of error
+            respondSimpleError(response, "Unable to recieve SampleTab file.");
             return;
             //note: maximum upload filesize specified in sampletab-accessioner-config.xml
         }
@@ -133,8 +135,7 @@ public class AccessionerController {
             st = parser.parse(is);
         } catch (ParseException e) {
             e.printStackTrace();
-            respondSimpleError(response, "Unable to parse that SampleTab file. Contact administrator for more information.");
-            //TODO output nice webpage of error
+            respondSimpleError(response, "Unable to parse SampleTab file.");
             return;
         } 
         
@@ -179,17 +180,17 @@ public class AccessionerController {
             st = a.convert(st);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
-            respondSimpleError(response, "Unable to connect to accession database. Contact administrator for more information.");
+            respondSimpleError(response, "Unable to connect to accession database.");
             //TODO output nice webpage of error
             return;
         } catch (SQLException e) {
             e.printStackTrace();
-            respondSimpleError(response, "Unable to connect to accession database. Contact administrator for more information.");
+            respondSimpleError(response, "Unable to connect to accession database.");
             //TODO output nice webpage of error
             return;
         } catch (ParseException e) {
             e.printStackTrace();
-            respondSimpleError(response, "Unable to assign accessions. Contact administrator for more information.");
+            respondSimpleError(response, "Unable to assign accessions.");
             //TODO output nice webpage of error
             return;
         }
@@ -207,11 +208,46 @@ public class AccessionerController {
             response.flushBuffer();
         } catch (IOException e) {
             e.printStackTrace();
-            respondSimpleError(response, "Unable to output SampleTab. Contact administrator for more information.");
+            respondSimpleError(response, "Unable to output SampleTab.");
             return;
         }
-        
     }
+
+    
+    @RequestMapping(value = "/jsac", method = RequestMethod.POST)
+    public @ResponseBody Outcome doAccession(@RequestBody SampleTabRequest sampletab) {
+        //parse the input
+        SampleTabParser<SampleData> parser = new SampleTabParser<SampleData>();
+        final List<ErrorItem> errorItems;
+        errorItems = new ArrayList<ErrorItem>();
+        parser.addErrorItemListener(new ErrorItemListener() {
+            public void errorOccurred(ErrorItem item) {
+                errorItems.add(item);
+            }
+        });
+        
+        try {
+            String singleString = sampletab.asSingleString();
+            
+            InputStream is = new ByteArrayInputStream(singleString.getBytes("UTF-8"));
+            
+            SampleData sampledata = parser.parse(is);
+            
+            Accessioner accessioner = getAccessioner();
+            sampledata = accessioner.convert(sampledata);
+            
+            return new Outcome(sampledata, errorItems);
+            
+        } catch (ParseException e) {
+            //catch parsing errors for misformed submissions
+            log.error(e.getMessage());
+            return new Outcome(null, e.getErrorItems());
+        } catch (Exception e) {
+            //general catch all for other errors, e.g SQL
+            return new Outcome();
+        } 
+    }
+    
     
     private Accessioner getAccessioner() throws ClassNotFoundException, SQLException{
         if (accessioner == null){
@@ -219,6 +255,7 @@ public class AccessionerController {
         }
         return accessioner;
     }
+    
     
     
 }
