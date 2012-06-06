@@ -9,9 +9,12 @@
 <meta name="no-email-collection"
 	content="http://www.unspam.com/noemailcollection/" />
 <meta name="generator" content="Dreamweaver 8" />
+
 <!-- InstanceBeginEditable name="doctitle" -->
 <title>BioSample Database SampleTab Web Accessioner</title>
+
 <!-- InstanceEndEditable -->
+
 <link rel="stylesheet" href="http://www.ebi.ac.uk/inc/css/contents.css"
 	type="text/css" />
 <link rel="stylesheet"
@@ -30,6 +33,11 @@
 </style>
 <!-- InstanceBeginEditable name="head" -->
 <!--  start meta tags, css , javascript here   -->
+
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script type="text/javascript" src="scripts/swfobject.js"></script>
+<script type="text/javascript" src="scripts/downloadify.min.js"></script>
+<script type="text/javascript" src="scripts/webaccession.js"></script>
 
 
 <!--  end meta tags, css , javascript here  -->
@@ -82,11 +90,14 @@
 							into the form below. You will then be able to download a version
 							of that file that has had sample and group accessions assigned.</p>
 						<p>
+						<!-- 
 							<form action="api/accession" method="post"
 								enctype="multipart/form-data">
 								SampleTab file to upload: <input type="file" name="file" /> <input
 									type="submit" value="Submit" />
 							</form>
+						 -->
+							<input type="file" name="file" id="pickfile" />
 						</p>
 
 						<ul>
@@ -99,7 +110,15 @@
 								under 8MB in size. For files approaching this size the
 								accessioning process may take several minutes.</li>
 						</ul>
-					</div> <!-- end contents here --> <!-- InstanceEndEditable --> <img
+					</div> 
+					<div id="errorsdiv">
+					
+					</div> 
+					<div id="sampletabdiv">
+					
+					</div>
+					
+					<!-- end contents here --> <!-- InstanceEndEditable --> <img
 					src="http://www.ebi.ac.uk/inc/images/spacer.gif" class="spacer"
 					alt="spacer" /></td>
 				<td class="rightmenucell" id="rightmenucell"><div
