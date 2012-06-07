@@ -9,9 +9,12 @@
 <meta name="no-email-collection"
 	content="http://www.unspam.com/noemailcollection/" />
 <meta name="generator" content="Dreamweaver 8" />
+
 <!-- InstanceBeginEditable name="doctitle" -->
 <title>BioSample Database SampleTab Web Accessioner</title>
+
 <!-- InstanceEndEditable -->
+
 <link rel="stylesheet" href="http://www.ebi.ac.uk/inc/css/contents.css"
 	type="text/css" />
 <link rel="stylesheet"
@@ -30,6 +33,11 @@
 </style>
 <!-- InstanceBeginEditable name="head" -->
 <!--  start meta tags, css , javascript here   -->
+
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script type="text/javascript" src="scripts/swfobject.js"></script>
+<script type="text/javascript" src="scripts/downloadify.min.js"></script>
+<script type="text/javascript" src="scripts/webaccession.js"></script>
 
 
 <!--  end meta tags, css , javascript here  -->
@@ -76,13 +84,65 @@
 
 					<div>
 						<h1>BioSample Database SampleTab Web Accessioner</h1>
-						<p>
-							A significant problem was encountered with the SampleTab file
-							you uploaded. Therefore it has <b>not</b> had any
-							accessions assigned.
-						</p>
-						<p>The problem was: <span th:text="${message}">Unable to foo the bar due to baz.</span></p>
-					</div> <!-- end contents here --> <!-- InstanceEndEditable --> <img
+						<p>Below is an example JSON representation the server response.</p>
+					</div>
+					<div style="width:800px">
+						<pre style="overflow:auto;width:auto;" >
+{
+    "errors": [],
+    "sampletab": [
+        ["[MSI]"],
+        ["Submission Title", "Transcription profiling by array of Arabidopsis cell suspensions after treatment with methyl jasmonate"],
+        ["Submission Identifier", "GAE-ATMX-13"],
+        ["Submission Description", "The transcriptional response of Arabidopsis thaliana cell suspensions following treatment with the stress hormone methyl jasmonate (MeJA) was monitored over time 16 hours after subcultivation. Three time points were included: 30 minutes, 2 hours and 6 hours after elicitation with 50Âµm MeJA or DMSO as a control."],
+        ["Submission Version", "1.2"],
+        ["Submission Reference Layer", "false"],
+        ["Submission Release Date", "2007/12/30"],
+        ["Submission Update Date", "2007/12/30"],
+        ["Organization Name", "Plant Systems Biology"],
+        ["Organization Address"],
+        ["Organization URI", "Technologiepark 927"],
+        ["Organization Email"],
+        ["Organization Role", "submitter"],
+        ["Person Last Name", "Pauwels"],
+        ["Person Initials"],
+        ["Person First Name", "Laurens"],
+        ["Person Email", "lapau@psb.ugent.be"],
+        ["Person Role", "submitter"],
+        ["Publication PubMed ID", "18216250"],
+        ["Publication DOI", "18216250"],
+        ["Term Source Name", "EFO"],
+        ["Term Source URI", "http://www.ebi.ac.uk/efo/"],
+        ["Term Source Version"],
+        ["Database Name", "ArrayExpress"],
+        ["Database ID", "E-ATMX-13"],
+        ["Database URI", "http://www.ebi.ac.uk/arrayexpress/experiments/E-ATMX-13"],
+        [""],
+        ["[SCD]"],
+        ["Sample Name", "Sample Accession", "Characteristic[Organism]", "Term Source Ref", "Term Source ID", "Characteristic[Ecotype]"],
+        ["DMSO - 0.5 h", "SAMEA621759", "Arabidopsis thaliana", "EFO", "http://purl.org/obo/owl/NCBITaxon#NCBITaxon_3702", "Columbia-0"],
+        ["DMSO - 0.5 h - 2", "SAMEA621783", "Arabidopsis thaliana", "EFO", "http://purl.org/obo/owl/NCBITaxon#NCBITaxon_3702", "Columbia-0"],
+        ["DMSO - 2 h", "SAMEA621838", "Arabidopsis thaliana", "EFO", "http://purl.org/obo/owl/NCBITaxon#NCBITaxon_3702", "Columbia-0"],
+        ["DMSO - 2 h - 2", "SAMEA621828", "Arabidopsis thaliana", "EFO", "http://purl.org/obo/owl/NCBITaxon#NCBITaxon_3702", "Columbia-0"],
+        ["DMSO - 6 h", "SAMEA621861", "Arabidopsis thaliana", "EFO", "http://purl.org/obo/owl/NCBITaxon#NCBITaxon_3702", "Columbia-0"],
+        ["DMSO - 6 h - 2", "SAMEA621850", "Arabidopsis thaliana", "EFO", "http://purl.org/obo/owl/NCBITaxon#NCBITaxon_3702", "Columbia-0"],
+        ["MeJA - 0 h", "SAMEA621770", "Arabidopsis thaliana", "EFO", "http://purl.org/obo/owl/NCBITaxon#NCBITaxon_3702", "Columbia-0"],
+        ["MeJA - 0 h - 2", "SAMEA621724", "Arabidopsis thaliana", "EFO", "http://purl.org/obo/owl/NCBITaxon#NCBITaxon_3702", "Columbia-0"],
+        ["MeJA - 0.5 h", "SAMEA621735", "Arabidopsis thaliana", "EFO", "http://purl.org/obo/owl/NCBITaxon#NCBITaxon_3702", "Columbia-0"],
+        ["MeJA - 0.5 h - 2", "SAMEA621815", "Arabidopsis thaliana", "EFO", "http://purl.org/obo/owl/NCBITaxon#NCBITaxon_3702", "Columbia-0"],
+        ["MeJA - 2 h", "SAMEA621716", "Arabidopsis thaliana", "EFO", "http://purl.org/obo/owl/NCBITaxon#NCBITaxon_3702", "Columbia-0"],
+        ["MeJA - 2 h - 2", "SAMEA621793", "Arabidopsis thaliana", "EFO", "http://purl.org/obo/owl/NCBITaxon#NCBITaxon_3702", "Columbia-0"],
+        ["MeJA - 6 h", "SAMEA621748", "Arabidopsis thaliana", "EFO", "http://purl.org/obo/owl/NCBITaxon#NCBITaxon_3702", "Columbia-0"],
+        ["MeJA - 6 h - 2", "SAMEA621803", "Arabidopsis thaliana", "EFO", "http://purl.org/obo/owl/NCBITaxon#NCBITaxon_3702", "Columbia-0"]
+    ]
+}
+f
+
+					
+						</pre>
+					</div>
+					
+					<!-- end contents here --> <!-- InstanceEndEditable --> <img
 					src="http://www.ebi.ac.uk/inc/images/spacer.gif" class="spacer"
 					alt="spacer" /></td>
 				<td class="rightmenucell" id="rightmenucell"><div
