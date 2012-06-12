@@ -75,148 +75,42 @@ public class AccessionerController {
         this.password = mysqlProperties.getProperty("password");
     }
     
-    public void respondSimpleError(HttpServletResponse response, String message){
-        //write error to log
-        log.error(message);
-        //write error to response
-        //TODO add prettyfication to EBI standards
-        Writer out = null;
-        try {
-            out = response.getWriter();
-            
-            
-            //out.write(message);
-        } catch (IOException e) {
-            log.error("Unable to generate a simple error for user");
-            e.printStackTrace();
-        } finally {
-            if (out!= null){
-                try {
-                    out.close();
-                } catch (IOException e) {
-                    //do nothing
-                }
-            }
-            try {
-                response.flushBuffer();
-            } catch (IOException e) {
-                //do nothing
-            }
-        }
-    }
-    
-    @RequestMapping(value = "/accession", method = RequestMethod.POST)
-    public void doAccession(@RequestParam("file")MultipartFile file, HttpServletResponse response) {
-        
-        //convert input into a sample data object
-        InputStream is;
-        try {
-            is = file.getInputStream();
-        } catch (IOException e) {
-            e.printStackTrace();
-            respondSimpleError(response, "Unable to recieve SampleTab file.");
-            return;
-            //note: maximum upload filesize specified in sampletab-accessioner-config.xml
-        }
-        
-        //parse the input
-        SampleTabParser<SampleData> parser = new SampleTabParser<SampleData>();
-        final List<ErrorItem> errorItems;
-        errorItems = new ArrayList<ErrorItem>();
-        parser.addErrorItemListener(new ErrorItemListener() {
-            public void errorOccurred(ErrorItem item) {
-                errorItems.add(item);
-            }
-        });
-        
-        SampleData st = null;
-        try{
-            //TODO error listener
-            st = parser.parse(is);
-        } catch (ParseException e) {
-            e.printStackTrace();
-            respondSimpleError(response, "Unable to parse SampleTab file.");
-            return;
-        } 
-        
-        //see if parsing threw errors
-        if (!errorItems.isEmpty()) {
-            // there are error items, print them and fail
-            StringBuilder sb = new StringBuilder();
-            for (ErrorItem item : errorItems) {
-                //look up the error code by ID to get human-readable string
-                ErrorCode code = null;
-                for (ErrorCode ec : ErrorCode.values()) {
-                    if (item.getErrorCode() == ec.getIntegerValue()) {
-                        code = ec;
-                        break;
-                    }
-                }
-
-                if (code != null) {
-                    sb.append("Listener reported error...").append("\n");
-                    sb.append("\tError Code: ").append(item.getErrorCode()).append(" [").append(code.getErrorMessage())
-                            .append("]").append("\n");
-                    sb.append("\tType: ").append(item.getErrorType()).append("\n");
-                } else {
-                    sb.append("Listener reported error...");
-                    sb.append("\tError Code: ").append(item.getErrorCode()).append("\n");
-                }
-                sb.append("\tLine: ").append(item.getLine() != -1 ? item.getLine() : "n/a").append("\n");
-                sb.append("\tColumn: ").append(item.getCol() != -1 ? item.getCol() : "n/a").append("\n");
-                sb.append("\tAdditional comment: ").append(item.getComment()).append("\n");
-                sb.append("\n");
-                
-            }
-            respondSimpleError(response, sb.toString());
-            return;
-        }
-        
-        
-        //assign accessions
-        Accessioner a;
-        try {
-            a = getAccessioner();
-            st = a.convert(st);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            respondSimpleError(response, "Unable to connect to accession database.");
-            //TODO output nice webpage of error
-            return;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            respondSimpleError(response, "Unable to connect to accession database.");
-            //TODO output nice webpage of error
-            return;
-        } catch (ParseException e) {
-            e.printStackTrace();
-            respondSimpleError(response, "Unable to assign accessions.");
-            //TODO output nice webpage of error
-            return;
-        }
+    /*
+     * Echoing function. Used for triggering download of javascript
+     * processed sampletab files. No way to download a javascript string
+     * directly from memory, so it is bounced back off the server through
+     * this method.
+     */
+    @RequestMapping(value = "/echo", method = RequestMethod.POST)
+    public void echo(String input, HttpServletResponse response) {
 
         //set it to be marked as a download file
         response.setContentType("application/octet-stream");
         //set the filename to download it as
         response.addHeader("Content-Disposition","attachment; filename=sampletab.txt");
+
         //writer to the output stream
+        Writer out = null; 
         try {
-            Writer out = new OutputStreamWriter(response.getOutputStream());
-            SampleTabWriter sampletabwriter = new SampleTabWriter(out);
-            sampletabwriter.write(st);
-            sampletabwriter.close();
-            response.flushBuffer();
+            out = new OutputStreamWriter(response.getOutputStream());
+            out.write(input);
         } catch (IOException e) {
             e.printStackTrace();
-            respondSimpleError(response, "Unable to output SampleTab.");
-            return;
+        } finally {
+            if (out != null){
+                try {
+                    out.close();
+                    response.flushBuffer();
+                } catch (IOException e) {
+                    //do nothing
+                }
+            }
         }
     }
-
-    
+        
     @RequestMapping(value = "/jsac", method = RequestMethod.POST)
     public @ResponseBody Outcome doAccession(@RequestBody SampleTabRequest sampletab) {
-        //parse the input
+        //setup parser to listen for errors
         SampleTabParser<SampleData> parser = new SampleTabParser<SampleData>();
         final List<ErrorItem> errorItems;
         errorItems = new ArrayList<ErrorItem>();
@@ -225,25 +119,31 @@ public class AccessionerController {
                 errorItems.add(item);
             }
         });
-        
+         
         try {
+            //convert json object to string
             String singleString = sampletab.asSingleString();
             
+            //setup the string as an input stream
             InputStream is = new ByteArrayInputStream(singleString.getBytes("UTF-8"));
             
+            //parse the input into sampletab
             SampleData sampledata = parser.parse(is);
             
+            //assign accessions to sampletab object
             Accessioner accessioner = getAccessioner();
             sampledata = accessioner.convert(sampledata);
             
+            //return the accessioned file, and any generated errors            
             return new Outcome(sampledata, errorItems);
             
         } catch (ParseException e) {
-            //catch parsing errors for misformed submissions
+            //catch parsing errors for malformed submissions
             log.error(e.getMessage());
             return new Outcome(null, e.getErrorItems());
         } catch (Exception e) {
             //general catch all for other errors, e.g SQL
+            log.error(e.getMessage());
             return new Outcome();
         } 
     }
