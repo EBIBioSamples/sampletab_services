@@ -84,6 +84,9 @@ public class AccessionerController {
     @RequestMapping(value = "/echo", method = RequestMethod.POST)
     public void echo(String input, HttpServletResponse response) {
 
+        log.info("Recieved echo: "+input);
+        
+        
         //set it to be marked as a download file
         response.setContentType("application/octet-stream");
         //set the filename to download it as
@@ -106,6 +109,7 @@ public class AccessionerController {
                 }
             }
         }
+        
     }
         
     @RequestMapping(value = "/jsac", method = RequestMethod.POST)

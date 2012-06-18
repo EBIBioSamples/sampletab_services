@@ -40,10 +40,39 @@ function handleFileSelect(evt) {
 }
 
 function doResponse(errors, sampletab) {
-    alert(errors);
-    //This uses Downloadify from https://github.com/dcneiner/Downloadify
-    //Note this requires JS + Flash.
-    $("#sampletabdiv").downloadify( filename="sampletab.txt", data=sampletab );
+	//TODO process errors nicely
+	if (errors.length > 0){
+		alert(errors);
+	}
+    
+    //convert the JSON array of arrays into a single
+    //string with tabs and newlines
+    var sampletabstring = JSON2DArrayToString(sampletab);
+    
+    //in order to download the sampletab string
+    //it needs to be echoes off the server due to
+    //javascript security restrictions
+    
+    //to do that, we create a invisible form 
+    var myForm = document.createElement("form");
+    myForm.method="post" ;
+    myForm.action = "api/echo" ;
+    
+    //attach download string to form as a multiline textbox
+    var myInput = document.createElement("textarea") ;
+    myInput.setAttribute("cols", 1) ;
+    myInput.setAttribute("rows", 1) ;
+    myInput.setAttribute("name", "input") ;
+    myInput.innerHTML = sampletabstring;
+    
+    myForm.appendChild(myInput) ;
+    document.body.appendChild(myForm) ;
+    //send the form, which should trigger a download
+    myForm.submit() ;
+    //clean up afterwards
+    document.body.removeChild(myForm) ;
+    
+    
 }
 
 function stringToJSON2DArray(myString) {
@@ -58,6 +87,20 @@ function stringToJSON2DArray(myString) {
         content.push("[" + line + "]");
     }
     return "{\"sampletab\" : [" + content + "]}";
+}
+
+function JSON2DArrayToString(array) {
+	var response = "";
+	for (var i=0; i < array.length; i++){
+		var line = array[i];
+		for (var j=0; j < line.length; j++){
+			var cell = line[j];
+			response = response + cell
+			response = response + "\t";
+		}
+		response = response + "\r\n";
+	}
+	return response;
 }
 
 $(document).ready(function() {
