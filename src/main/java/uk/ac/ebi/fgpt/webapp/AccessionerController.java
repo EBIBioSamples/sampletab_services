@@ -14,9 +14,10 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.listener.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.sampletab.datamodel.SampleData;
 import uk.ac.ebi.arrayexpress2.sampletab.parser.SampleTabParser;
+import uk.ac.ebi.arrayexpress2.sampletab.parser.SampleTabSaferParser;
 import uk.ac.ebi.arrayexpress2.sampletab.renderer.SampleTabWriter;
 import uk.ac.ebi.fgpt.sampletab.Accessioner;
-import uk.ac.ebi.fgpt.sampletab.SampleTabcronBulk;
+import uk.ac.ebi.fgpt.sampletab.SampleTabBulk;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileOutputStream;
@@ -61,7 +62,7 @@ public class AccessionerController {
 
         Properties mysqlProperties = new Properties();
         try {
-            InputStream is = SampleTabcronBulk.class.getResourceAsStream("/mysql.properties");
+            InputStream is = AccessionerController.class.getResourceAsStream("/mysql.properties");
             mysqlProperties.load(is);
         } catch (IOException e) {
             log.error("Unable to read resource mysql.properties");
@@ -116,6 +117,7 @@ public class AccessionerController {
     public @ResponseBody Outcome doAccession(@RequestBody SampleTabRequest sampletab) {
         //setup parser to listen for errors
         SampleTabParser<SampleData> parser = new SampleTabParser<SampleData>();
+        
         final List<ErrorItem> errorItems;
         errorItems = new ArrayList<ErrorItem>();
         parser.addErrorItemListener(new ErrorItemListener() {

@@ -5,6 +5,7 @@ import java.util.List;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.sampletab.datamodel.SampleData;
 import uk.ac.ebi.arrayexpress2.sampletab.parser.SampleTabParser;
+import uk.ac.ebi.arrayexpress2.sampletab.parser.SampleTabSaferParser;
 
 
 /**
@@ -60,7 +61,7 @@ public class SampleTabRequest {
     
     public SampleData asSampleData() throws ParseException{
         String singleString = asSingleString();
-        SampleTabParser parser = new SampleTabParser();
+        SampleTabSaferParser parser = new SampleTabSaferParser();
         return parser.parse(singleString);
     }
 }
