@@ -4,7 +4,6 @@ import java.util.List;
 
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.sampletab.datamodel.SampleData;
-import uk.ac.ebi.arrayexpress2.sampletab.parser.SampleTabParser;
 import uk.ac.ebi.arrayexpress2.sampletab.parser.SampleTabSaferParser;
 
 
@@ -21,6 +20,7 @@ public class SampleTabRequest {
      * Default constructor to allow deserialization of JSON into a request bean: present to allow Jackson/spring to
      * construct a request bean from POST requests properly.
      */
+    @SuppressWarnings("unused")
     private SampleTabRequest() {
     }
 
