@@ -50,8 +50,7 @@ public class AccessionerController {
             InputStream is = AccessionerController.class.getResourceAsStream("/mysql.properties");
             mysqlProperties.load(is);
         } catch (IOException e) {
-            log.error("Unable to read resource mysql.properties");
-            e.printStackTrace();
+            log.error("Unable to read resource mysql.properties", e);
             return;
         }
         this.host = mysqlProperties.getProperty("hostname");
@@ -68,7 +67,7 @@ public class AccessionerController {
      * this method.
      */
     @RequestMapping(value = "/echo", method = RequestMethod.POST)
-    public void echo(String input, HttpServletResponse response) {
+    public void echo(String input, HttpServletResponse response) throws IOException {
 
         log.debug("Recieved echo: "+input);
         
@@ -79,12 +78,11 @@ public class AccessionerController {
         response.addHeader("Content-Disposition","attachment; filename=sampletab.txt");
 
         //writer to the output stream
+        //let springs default error handling take over and redirect on error.
         Writer out = null; 
         try {
             out = new OutputStreamWriter(response.getOutputStream());
             out.write(input);
-        } catch (IOException e) {
-            e.printStackTrace();
         } finally {
             if (out != null){
                 try {

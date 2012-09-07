@@ -17,6 +17,7 @@ public class Outcome {
 
     private List<Map<String,String>> errors;
     private List<List<String>> sampletab;
+    private SampleData sampledata;
     
     /**
      * Default constructor to allow deserialization of JSON into a request bean: present to allow Jackson/spring to
@@ -45,18 +46,19 @@ public class Outcome {
         }
         setErrors(errorList);
         
-        if (sampledata == null) {
-            //no nothing
-        } else {
+        this.sampledata = sampledata;
+    }
+
+    public List<List<String>> getSampletab() throws IOException {
+        //check for lazy-loading
+        if (sampletab == null && sampledata != null) {
             //write the sampledata out to a string
             //then split that string into cells and store
             StringWriter sw = new StringWriter();
             SampleTabWriter stw = new SampleTabWriter(sw);
-            try {
-                stw.write(sampledata);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            
+            stw.write(sampledata);
+            
             String sampleTabString = sw.toString();
             List<List<String>> sampleTabListList = new ArrayList<List<String>>();
             for (String line : sampleTabString.split("\n")){
@@ -68,9 +70,6 @@ public class Outcome {
             }
             setSampletab(sampleTabListList);
         }
-    }
-
-    public List<List<String>> getSampletab() {
         return sampletab;
     }
     

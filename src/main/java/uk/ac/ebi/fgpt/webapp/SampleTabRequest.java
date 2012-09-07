@@ -10,8 +10,8 @@ import uk.ac.ebi.arrayexpress2.sampletab.parser.SampleTabSaferParser;
 /**
  * A simple wrapper object that encapsulates a SampleTab document as a list of lists of strings.
  *
- * @author Tony Burdett
- * @date 05/12/11
+ * @author Adam Faulconbridge
+ * @date 07/08/12
  */
 public class SampleTabRequest {
     private List<List<String>> sampletab;
@@ -37,7 +37,7 @@ public class SampleTabRequest {
     }
 
     //internal function for combining the list of lists into a tab/newline separated string
-    public String asSingleString(){
+    public String asSingleString() {
         StringBuilder sb = new StringBuilder();
         boolean firstLine = true;
         for (List<String> line : sampletab){
@@ -59,7 +59,7 @@ public class SampleTabRequest {
         return sb.toString();
     }
     
-    public SampleData asSampleData() throws ParseException{
+    public SampleData asSampleData() throws ParseException {
         String singleString = asSingleString();
         SampleTabSaferParser parser = new SampleTabSaferParser();
         return parser.parse(singleString);
