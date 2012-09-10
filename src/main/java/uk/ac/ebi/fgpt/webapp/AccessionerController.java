@@ -19,7 +19,9 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletResponse;
@@ -125,15 +127,29 @@ public class AccessionerController {
             
             //return the accessioned file, and any generated errors            
             return new Outcome(sampledata, errorItems);
-            
+            /*
         } catch (ParseException e) {
             //catch parsing errors for malformed submissions
-            log.error(e.getMessage());
-            return new Outcome(null, e.getErrorItems());
+            log.error(e.getMessage(), e);
+            if (e.getErrorItems().size() == 0){
+                List<Map<String,String>> errors = new ArrayList<Map<String,String>>();
+                Map<String, String> error = new HashMap<String, String>();
+                error.put("type", e.getClass().getName());
+                error.put("message", e.toString());
+                errors.add(error);
+                return new Outcome(null, errors);
+            } else {
+                return new Outcome(null, e.getErrorItems());
+            }*/
         } catch (Exception e) {
             //general catch all for other errors, e.g SQL
-            log.error(e.getMessage());
-            return new Outcome();
+            log.error(e.getMessage(), e);
+            List<Map<String,String>> errors = new ArrayList<Map<String,String>>();
+            Map<String, String> error = new HashMap<String, String>();
+            error.put("type", e.getClass().getName());
+            error.put("message", e.getLocalizedMessage());
+            errors.add(error);
+            return new Outcome(null, errors);
         } 
     }
     
