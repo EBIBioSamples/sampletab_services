@@ -49,7 +49,7 @@ public class AccessionerController {
 
         Properties mysqlProperties = new Properties();
         try {
-            InputStream is = AccessionerController.class.getResourceAsStream("/mysql.properties");
+            InputStream is = AccessionerController.class.getResourceAsStream("/oracle.properties");
             mysqlProperties.load(is);
         } catch (IOException e) {
             log.error("Unable to read resource mysql.properties", e);
@@ -70,10 +70,6 @@ public class AccessionerController {
      */
     @RequestMapping(value = "/echo", method = RequestMethod.POST)
     public void echo(String input, HttpServletResponse response) throws IOException {
-
-        log.debug("Recieved echo: "+input);
-        
-        
         //set it to be marked as a download file
         response.setContentType("application/octet-stream");
         //set the filename to download it as
