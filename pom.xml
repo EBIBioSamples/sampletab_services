@@ -87,6 +87,23 @@
 			</dependencies>
 		</profile>
 
+		<!-- profile for test, uses files from resources-test -->
+		<profile>
+			<id>test</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<build>
+				<resources>
+					<resource>
+						<directory>src/main/resources-test</directory>
+					</resource>
+				</resources>
+			</build>
+			<dependencies>
+			</dependencies>
+		</profile>
+
 		<!-- profile for development, uses files from resources-development -->
 		<profile>
 			<id>development</id>
