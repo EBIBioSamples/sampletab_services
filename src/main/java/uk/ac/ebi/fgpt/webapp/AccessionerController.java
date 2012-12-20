@@ -10,7 +10,7 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.listener.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.sampletab.datamodel.SampleData;
 import uk.ac.ebi.arrayexpress2.sampletab.parser.SampleTabParser;
-import uk.ac.ebi.fgpt.sampletab.Accessioner;
+import uk.ac.ebi.fgpt.sampletab.AccessionerENA;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -41,7 +41,7 @@ public class AccessionerController {
     private String database;
     private String username;
     private String password;
-    private Accessioner accessioner;
+    private AccessionerENA accessioner;
     
     private Logger log = LoggerFactory.getLogger(getClass());
     
@@ -118,7 +118,7 @@ public class AccessionerController {
             SampleData sampledata = parser.parse(is);
             
             //assign accessions to sampletab object
-            Accessioner accessioner = getAccessioner();
+            accessioner = getAccessioner();
             sampledata = accessioner.convert(sampledata);
             
             //return the accessioned file, and any generated errors            
@@ -150,9 +150,9 @@ public class AccessionerController {
     }
     
     
-    private Accessioner getAccessioner() throws ClassNotFoundException, SQLException{
+    private AccessionerENA getAccessioner() throws ClassNotFoundException, SQLException{
         if (accessioner == null){
-            accessioner = new Accessioner(host, port, database, username, password);
+            accessioner = new AccessionerENA(host, port, database, username, password);
         }
         return accessioner;
     }
