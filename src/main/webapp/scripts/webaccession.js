@@ -52,7 +52,7 @@ function doResponse(errors, sampletab) {
 			var tablerow = document.createElement('tr')
 			errortable.appendChild(tablerow)
 			var tabledata = document.createElement('td')
-			tabledata..innerHTML = error.message
+			tabledata.innerHTML = error.message
 			tablerow.appendChild(tabledata)
 		}
 		
