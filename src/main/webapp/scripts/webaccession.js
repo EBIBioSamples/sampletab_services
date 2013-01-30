@@ -42,36 +42,49 @@ function handleFileSelect(evt) {
 function doResponse(errors, sampletab) {
 	//TODO process errors nicely
 	if (errors.length > 0){
+		var errorsdiv = document.getElementById('errorsdiv');
+		//clear any previous errors
+		errorsdiv.innerHTML = "";
+		//create the table
+		var errortable = document.createElement('table')
+		errorsdiv.appendChild(table);
+		for (error in errors){
+			var tablerow = document.createElement('tr')
+			errortable.appendChild(tablerow)
+			var tabledata = document.createElement('td')
+			tabledata..innerHTML = error.message
+			tablerow.appendChild(tabledata)
+		}
+		
 		alert(errors);
+	} else {
+	    //convert the JSON array of arrays into a single
+	    //string with tabs and newlines
+	    var sampletabstring = JSON2DArrayToString(sampletab);
+	    
+	    //in order to download the sampletab string
+	    //it needs to be echoes off the server due to
+	    //javascript security restrictions
+	    
+	    //to do that, we create a invisible form 
+	    var myForm = document.createElement("form");
+	    myForm.method="post" ;
+	    myForm.action = "api/echo" ;
+	    
+	    //attach download string to form as a multiline textbox
+	    var myInput = document.createElement("textarea") ;
+	    myInput.setAttribute("cols", 1) ;
+	    myInput.setAttribute("rows", 1) ;
+	    myInput.setAttribute("name", "input") ;
+	    myInput.innerHTML = sampletabstring;
+	    
+	    myForm.appendChild(myInput) ;
+	    document.body.appendChild(myForm) ;
+	    //send the form, which should trigger a download
+	    myForm.submit() ;
+	    //clean up afterwards
+	    document.body.removeChild(myForm) ;
 	}
-    
-    //convert the JSON array of arrays into a single
-    //string with tabs and newlines
-    var sampletabstring = JSON2DArrayToString(sampletab);
-    
-    //in order to download the sampletab string
-    //it needs to be echoes off the server due to
-    //javascript security restrictions
-    
-    //to do that, we create a invisible form 
-    var myForm = document.createElement("form");
-    myForm.method="post" ;
-    myForm.action = "api/echo" ;
-    
-    //attach download string to form as a multiline textbox
-    var myInput = document.createElement("textarea") ;
-    myInput.setAttribute("cols", 1) ;
-    myInput.setAttribute("rows", 1) ;
-    myInput.setAttribute("name", "input") ;
-    myInput.innerHTML = sampletabstring;
-    
-    myForm.appendChild(myInput) ;
-    document.body.appendChild(myForm) ;
-    //send the form, which should trigger a download
-    myForm.submit() ;
-    //clean up afterwards
-    document.body.removeChild(myForm) ;
-    
     
 }
 
