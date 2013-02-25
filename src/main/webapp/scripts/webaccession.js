@@ -152,9 +152,13 @@ function JSON2DArrayToString(array) {
 }
 
 $(document).ready(function() {
-	document.getElementById('pickfileaccession').addEventListener('change', handleAccessionFileSelect, false);
+	if (document.getElementById('pickfileaccession') != null) {
+		document.getElementById('pickfileaccession').addEventListener('change', handleAccessionFileSelect, false);
+	}
 	});
 
 $(document).ready(function() {
-	document.getElementById('pickfilevalidation').addEventListener('change', handleValidationFileSelect, false);
+	if (document.getElementById('pickfilevalidation') != null) {
+		document.getElementById('pickfilevalidation').addEventListener('change', handleValidationFileSelect, false);
+	}
 	});
