@@ -82,16 +82,17 @@ function doResponse(errors, sampletab) {
 		errorsdiv.innerHTML = "";
 		//create the table
 		var errortable = document.createElement('table')
-		errorsdiv.appendChild(errortable);
 		for (error in errors){
 			var tablerow = document.createElement('tr')
 			errortable.appendChild(tablerow)
 			var tabledata = document.createElement('td')
 			tabledata.innerHTML = error.message
 			tablerow.appendChild(tabledata)
+			//DEBUG
+			alert(error);
 		}
+		errorsdiv.appendChild(errortable);
 		
-		alert(errors);
 	} else {
 	    //convert the JSON array of arrays into a single
 	    //string with tabs and newlines
