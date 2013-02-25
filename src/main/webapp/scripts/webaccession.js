@@ -82,7 +82,8 @@ function doResponse(errors, sampletab) {
 		errorsdiv.innerHTML = "";
 		//create the table
 		var errortable = document.createElement('table')
-		for (error in errors){
+		for (var i = 0; i < errors.length; i++) {
+			var error = errors[i]
 			var tablerow = document.createElement('tr')
 			errortable.appendChild(tablerow)
 			var tabledata = document.createElement('td')
