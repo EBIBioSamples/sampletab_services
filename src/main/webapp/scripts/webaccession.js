@@ -81,14 +81,25 @@ function doResponse(errors, sampletab) {
 		//clear any previous errors
 		errorsdiv.innerHTML = "";
 		//create the table
-		var errortable = document.createElement('table')
+		var errortable = document.createElement('table');
+		var tablerow = document.createElement('tr');
+		errortable.appendChild(tablerow);
+		var tabledata = document.createElement('th');
+		tabledata.innerHTML = "Error Message";
+		tablerow.appendChild(tabledata)
+		tabledata = document.createElement('th');
+		tabledata.innerHTML = "Comment";
+		tablerow.appendChild(tabledata)
 		for (var i = 0; i < errors.length; i++) {
-			var error = errors[i]
-			var tablerow = document.createElement('tr')
-			errortable.appendChild(tablerow)
-			var tabledata = document.createElement('td')
-			tabledata.innerHTML = error.message
-			tablerow.appendChild(tabledata)
+			var error = errors[i];
+			tablerow = document.createElement('tr');
+			errortable.appendChild(tablerow);
+			tabledata = document.createElement('td');
+			tabledata.innerHTML = error.message;
+			tablerow.appendChild(tabledata);
+			tabledata = document.createElement('td');
+			tabledata.innerHTML = error.comment;
+			tablerow.appendChild(tabledata);
 			//DEBUG
 			alert(error);
 		}
