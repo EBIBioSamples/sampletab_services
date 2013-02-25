@@ -20,7 +20,7 @@
 	<!-- Describe what this page is about -->
                                             
 <meta name="keywords" content="bioinformatics, europe, institute">
-	<!-- A few keywords that relate to the content of THIS PAGE (not the whol project) -->
+	<!-- A few keywords that relate to the content of THIS PAGE (not the whole project) -->
                                                 
 <meta name="author" content="EMBL-EBI">
 	<!-- Your [project-name] here -->
@@ -167,33 +167,26 @@
 
 
 					<div>
-						<h2>BioSample Database SampleTab Web Accessioner</h2>
-						<p>This webpage provides a service for assigning accessions to
-							SampleTab format submissions to the BioSample Database.</p>
-						<p>Please provide the SampleTab file you wish to accession
+						<h2>BioSample Database SampleTab Web Validator</h2>
+						<p>This webpage provides a service for validating
+							SampleTab format files as used by the BioSample Database.</p>
+						<p>Please provide the SampleTab file you wish to validate
 							into the form below. You will then be able to download a version
-							of that file that has had sample and group accessions assigned.</p>
+							of that file that has been corrected.</p>
 						<p>
-						<!-- 
-							<form action="api/accession" method="post"
-								enctype="multipart/form-data">
-								SampleTab file to upload: <input type="file" name="file" /> <input
-									type="submit" value="Submit" />
-							</form>
-						 -->
-							<input type="file" name="file" id="pickfileaccession">
+						<input type="file" name="file" id="pickfilevalidation">
 						
 				</p>
 
 						<ul>
 							<li>Node: This service is currently of beta quality. If you
 								experience any problems, please report them to <a
-						href="mailto:biosamples@ebi.ac.uk?Subject=SampleTab+Web+Accessioner">
+						href="mailto:biosamples@ebi.ac.uk?Subject=SampleTab+Web+Validator">
 									biosamples@ebi.ac.uk</a> and attach the SampleTab file you were
-								trying to accession.</li>
-							<li>Note: Currently we can only accession SampleTab files
+								trying to validate.</li>
+							<li>Note: Currently we can only validate SampleTab files
 								under 8MB in size. For files approaching this size the
-								accessioning process may take several minutes.</li>
+								validation process may take several minutes.</li>
 						</ul>
 					</div> 
 					<div id="errorsdiv">

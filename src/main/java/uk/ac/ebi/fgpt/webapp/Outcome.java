@@ -43,6 +43,7 @@ public class Outcome {
             errorMap.put("col", new Integer(errorItem.getCol()).toString());
             errorMap.put("message", errorItem.getMesg());
             errorMap.put("comment", errorItem.getComment());
+            errorList.add(errorMap);
         }
         setErrors(errorList);
         
