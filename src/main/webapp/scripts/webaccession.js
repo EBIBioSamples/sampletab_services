@@ -74,6 +74,41 @@ function handleValidationFileSelect(evt) {
 	filereader.readAsText(file, "UTF-8");
 }
 
+function handleSubmissionFileSelect(evt) {
+	var file = evt.target.files[0];
+	
+	var filereader = new FileReader();
+	
+	//TODO some fancy loader swirly 
+	//setup the callback used when loading the file from disk
+	filereader.onload = (function(e) {
+		//convert the string into a JSON array of arrays
+		var sampletabstring = stringToJSON2DArray(e.target.result)
+		
+		//do the ajax call
+	    $.ajax({
+           type:           'POST',
+           url:            'api/jssb',
+           contentType:    'application/json',
+           data:           sampletabstring,
+           processData:    false,
+           success: function(json) {
+        	   //once the ajax call is complete, display the output
+        	   //through this callback
+        	   doResponse(json.errors, json.sampletab)
+           },
+           error: function(request, error_type, error_mesg) {
+        	   //if the ajax call when awry, tell the user
+               alert('Oops! Something went wrong whilst trying to display your results.\n' +
+                             'A script on this page said...\n' +
+                             '\"' + error_type + ': ' + error_mesg + '\"');
+           }
+       });
+	})
+	//now setup is complete, actually read the file
+	filereader.readAsText(file, "UTF-8");
+}
+
 function doResponse(errors, sampletab) {
 	//TODO process errors nicely
 	if (errors.length > 0){
@@ -173,5 +208,11 @@ $(document).ready(function() {
 $(document).ready(function() {
 	if (document.getElementById('pickfilevalidation') != null) {
 		document.getElementById('pickfilevalidation').addEventListener('change', handleValidationFileSelect, false);
+	}
+	});
+
+$(document).ready(function() {
+	if (document.getElementById('pickfilesubmission') != null) {
+		document.getElementById('pickfilesubmission').addEventListener('change', handleSubmissionFileSelect, false);
 	}
 	});

@@ -1,0 +1,314 @@
+<!doctype html>
+<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
+<!--[if lt IE 7]> <html class="no-js ie6 oldie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js ie7 oldie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js ie8 oldie" lang="en"> <![endif]-->
+<!-- Consider adding an manifest.appcache: h5bp.com/d/Offline -->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+<head>
+<meta charset="utf-8">
+
+	<!-- Use the .htaccess and remove these lines to avoid edge case issues.
+                                     More info: h5bp.com/b/378 -->
+	<!-- <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> -->
+	<!-- Not yet implemented -->
+<title>SampleTab Accessioner &lt;
+	BioSamples Database &lt; EMBL-EBI</title>
+<meta name="description" content="EMBL-EBI">
+	<!-- Describe what this page is about -->
+                                            
+<meta name="keywords" content="bioinformatics, europe, institute">
+	<!-- A few keywords that relate to the content of THIS PAGE (not the whol project) -->
+                                                
+<meta name="author" content="EMBL-EBI">
+	<!-- Your [project-name] here -->
+
+                                                    <!-- Mobile viewport optimized: j.mp/bplateviewport -->
+                                                    
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+                                                        <!-- Place favicon.ico and apple-touch-icon.png in the root directory: mathiasbynens.be/notes/touch-icons -->
+                                                        <!-- Better make some of these! [FR] -->
+                                                        
+                                                        <!-- CSS: implied media=all -->
+                                                        <!-- CSS concatenated and minified via ant build script-->	<!-- Not yet implemented -->
+                                                        
+<link rel="stylesheet"
+	href="/web_guidelines/css/compliance/develop/boilerplate-style.css">
+                                                                
+                                                            
+<link rel="stylesheet"
+	href="/web_guidelines/css/compliance/develop/ebi-global.css"
+	type="text/css" media="screen" />
+                                                            <link
+	rel="stylesheet"
+	href="/web_guidelines/css/compliance/develop/ebi-visual.css"
+	type="text/css" media="screen">
+                                                                
+<link rel="stylesheet"
+	href="/web_guidelines/css/compliance/develop/984-24-col-fixed.css"
+	type="text/css" media="screen" />
+                                                        
+                                                                <link
+	rel="stylesheet"
+	href="/web_guidelines/css/compliance/develop/embl-petrol-colours.css"
+	type="text/css" media="screen">
+	<!-- you can replace this with [projectname]-colours.css. See http://frontier.ebi.ac.uk/web/style/colour for details of how to do this -->
+
+                                                                
+                                                                    <!-- end CSS-->
+                                                                
+                                                                        
+                                                                    <!-- All JavaScript at the bottom, except for Modernizr / Respond.
+                                                           Modernizr enables HTML5 elements & feature detects; Respond is a polyfill for min/max-width CSS3 Media Queries
+                                                           For optimal performance, use a custom Modernizr build: www.modernizr.com/download/ -->
+                                                                            
+                                                                    <!-- Full build -->
+                                                                    <!-- <script src="../js/libs/modernizr.minified.2.1.6.js"></script> -->
+                                                                    
+                                                                    <!-- custom build (lacks most of the "advanced" HTML5 support -->
+                                                                    
+<script
+	src="/web_guidelines/js/libs/modernizr.custom.49274.js"></script>
+                                                                    
+                                                                </head>
+                                                                    
+                                                                <body
+	class="level2">
+                                                                        
+                                                                    <div
+		id="skip-to">
+                                                                        <ul>
+                                                                            <li><a
+				href="#content" title="">Skip to main content</a>
+			</li>
+                                                                            <li><a
+				href="#local-nav" title="">Skip to local navigation</a>
+			</li>
+                                                                            <li><a
+				href="#global-nav" title="">Skip to EBI global navigation menu</a>
+			</li>
+                                                                            <li><a
+				href="#global-nav-expanded" title="">Skip to expanded EBI global navigation menu (includes all sub-sections)</a>
+			</li>
+                                                                        </ul>
+                                                                    </div>
+                                                                            
+                                                                    <div
+		id="wrapper" class="container_24">
+                                                                    <header>
+            <div id="global-masthead" class="masthead grid_24">
+            <p>
+					<!-- EMBL-EBI  -->
+					<img
+						src="http://frontier.ebi.ac.uk/sites/ebi.ac.uk/themes/custom/ebiomega/logo.png"
+						alt="European Bioinformatics Institute">
+				</p>
+
+                <nav>
+                    <ul id="global-nav">
+                        <li class="first" id="services"><a
+							href="/services" title="Services">Services</a>
+						</li>
+                        <li id="research"><a href="/research"
+							title="Research">Research</a>
+						</li>
+                        <li id="training"><a href="/training"
+							title="Training">Training</a>
+						</li>
+                        <li id="industry"><a href="/industry"
+							title="Industry">Industry</a>
+						</li>
+                        <li id="about" class="last"><a
+							href="/about" title="About us">About us</a>
+						</li>
+                    </ul>
+                </nav>
+
+            </div>
+
+            <div id="local-masthead" class="masthead grid_24 nomenu">
+
+                <div class="grid_12 alpha" id="local-title">
+                    <h1>SampleTab Accessioner</h1>
+                </div>
+                <!-- -->
+
+                <div class="grid_12 omega">
+                    <form id="local-search" name="local-search"
+						action="#" method="post">
+
+                        <fieldset>
+
+                            <label>
+                                <input type="text" name="first"
+								id="local-searchbox">
+                            
+							</label>
+
+                            <input type="submit" name="submit"
+								value="Search" class="submit">
+                        
+						</fieldset>
+
+                    </form>
+                </div>
+
+                <nav>
+                    <ul class="grid_24" id="local-nav"></ul>
+                </nav>
+            </div>
+            </header>
+		<div id="content" role="main" class="grid_24 clearfix">
+
+					<!-- InstanceBeginEditable name="contents" --> <!-- start contents here -->
+
+
+					<div>
+						<h2>BioSample Database SampleTab Web Accessioner</h2>
+						<p>This webpage provides a service for assigning accessions to
+							SampleTab format submissions to the BioSample Database.</p>
+						<p>Please provide the SampleTab file you wish to accession
+							into the form below. You will then be able to download a version
+							of that file that has had sample and group accessions assigned.</p>
+						<p>
+						<!-- 
+							<form action="api/accession" method="post"
+								enctype="multipart/form-data">
+								SampleTab file to upload: <input type="file" name="file" /> <input
+									type="submit" value="Submit" />
+							</form>
+						 -->
+							<input type="file" name="file" id="pickfileaccession">
+						
+				</p>
+
+						<ul>
+							<li>Node: This service is currently of beta quality. If you
+								experience any problems, please report them to <a
+						href="mailto:biosamples@ebi.ac.uk?Subject=SampleTab+Web+Accessioner">
+									biosamples@ebi.ac.uk</a> and attach the SampleTab file you were
+								trying to accession.</li>
+							<li>Note: Currently we can only accession SampleTab files
+								under 8MB in size. For files approaching this size the
+								accessioning process may take several minutes.</li>
+						</ul>
+					</div> 
+					<div id="errorsdiv">
+					
+					</div> 
+					<div id="sampletabdiv">
+					
+					</div>					
+					<!-- end contents here --> <!-- InstanceEndEditable --> <img
+				src="/inc/images/spacer.gif" class="spacer"
+				alt="spacer">
+
+		</div>
+		<footer>
+<!-- Optional local footer (insert citation / project-specific copyright / etc here -->
+        <!--
+            <div id="local-footer" class="grid_24 clearfix">
+            
+                </div>
+-->
+                <!-- End optional local footer -->
+    
+                <div id="global-footer" class="grid_24 clearfix">
+            
+                    <nav id="global-nav-expanded">
+
+                        <div class="grid_4 alpha">
+                            <h3 class="explore">Explore</h3>
+                        </div>
+                            
+                        <div class="grid_4">
+                            <h3 class="services">
+							<a href="/services" title="Services">Services</a>
+						</h3>
+                        </div>
+                            
+                        <div class="grid_4">
+                            <h3 class="research">
+							<a href="/research" title="Research">Research</a>
+						</h3>
+                        </div>
+                            
+                        <div class="grid_4">
+                            <h3 class="training">
+							<a href="/training" title="Training">Training</a>
+						</h3>
+                        </div>
+                            
+                        <div class="grid_4">
+                            <h3 class="industry">
+							<a href="/industry" title="Industry">Industry</a>
+						</h3>
+                        </div>
+                            
+                        <div class="grid_4 omega">
+                            <h3 class="about">
+							<a href="/about" title="About us">About us</a>
+						</h3>
+                        </div>
+                            
+                    </nav>
+                    <script
+					src="/web_guidelines/js/foot.js"></script>
+                    
+                </div>
+                    
+                <div class="grid_24">
+                    <section id="ebi-footer-meta">
+                        <p> &copy; EMBL-EBI European Bioinformatics Institute | <a
+							href="#" title="">Privacy</a> | <a href="#" title="">Cookies</a> | <a
+							href="#" title="">Terms of use</a>
+					</p>
+                    </section>
+                </div>
+                        
+            </footer>
+  </div> <!--! end of #wrapper -->
+            
+           
+            <!-- JavaScript at the bottom for fast page loading -->
+            
+        <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
+<!--        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script> -->
+<!--         <script>window.jQuery || document.write('<script src="../js/libs/jquery-1.6.2.min.js"></script>')</script> -->
+        
+        
+            <!-- scripts concatenated and minified via ant build script-->
+            <!--
+            <script defer src="../js/plugins.js"></script>
+              <script defer src="../js/script.js"></script>
+            -->
+            <script defer src="/web_guidelines/js/cookiebanner.js"></script>
+			<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+		
+            <script defer src="scripts/webaccession.js"></script>
+            <!-- end scripts-->
+            
+            
+            <!-- Change UA-XXXXX-X to be your site's ID -->
+            <!--
+            <script>
+                window._gaq = [['_setAccount','UAXXXXXXXX1'],['_trackPageview'],['_trackPageLoadTime']];
+                Modernizr.load({
+                  load: ('https:' == location.protocol ? '//ssl' : '//www') + '.google-analytics.com/ga.js'
+                });
+              </script>
+            -->
+            
+            
+            <!-- Prompt IE 6 users to install Chrome Frame. Remove this if you want to support IE 6.
+           chromium.org/developers/how-tos/chrome-frame-getting-started -->
+            <!--[if lt IE 7 ]>
+              <script src="//ajax.googleapis.com/ajax/libs/chrome-frame/1.0.3/CFInstall.min.js"></script>
+              <script>window.attachEvent('onload',function(){CFInstall.check({mode:'overlay'})})</script>
+            <![endif]-->
+            
+        </body>
+        </html>
