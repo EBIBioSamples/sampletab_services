@@ -128,6 +128,7 @@ public class SubmissionController {
                 sampledata.msi.submissionIdentifier = "GSB-"+getNewSubID();
             }
             File subdir = SampleTabUtils.getSubmissionDirFile(sampledata.msi.submissionIdentifier);
+            subdir = new File(path.toString(), subdir.toString());
             File outFile = new File(subdir, "sampletab.pre.txt");
 
             SampleTabWriter writer = null;
