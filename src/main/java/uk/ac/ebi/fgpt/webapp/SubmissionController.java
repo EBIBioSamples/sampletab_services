@@ -14,6 +14,8 @@ import uk.ac.ebi.arrayexpress2.sampletab.parser.SampleTabParser;
 import uk.ac.ebi.arrayexpress2.sampletab.renderer.SampleTabWriter;
 import uk.ac.ebi.arrayexpress2.sampletab.validator.SampleTabValidator;
 import uk.ac.ebi.fgpt.sampletab.Accessioner;
+import uk.ac.ebi.fgpt.sampletab.AccessionerENA;
+import uk.ac.ebi.fgpt.sampletab.Corrector;
 import uk.ac.ebi.fgpt.sampletab.utils.SampleTabUtils;
 
 import java.io.BufferedWriter;
@@ -49,6 +51,9 @@ public class SubmissionController {
                 
     private final File path;
     private final Pattern pattern = Pattern.compile("^GSB-\\(([0-9]++)\\)$");
+    private AccessionerENA accessioner;
+    
+    private Corrector corrector;
     
     public SubmissionController(){
         Properties properties = new Properties();
@@ -65,7 +70,34 @@ public class SubmissionController {
             //TODO throw error
             log.error("Submission path "+path+" does not exist");
         }
+        
+        properties = new Properties();
+        try {
+            InputStream is = AccessionerController.class.getResourceAsStream("/oracle.properties");
+            properties.load(is);
+        } catch (IOException e) {
+            log.error("Unable to read resource properties", e);
+            return;
+        }
+        
+        String host = properties.getProperty("hostname");
+        Integer port = new Integer(properties.getProperty("port"));
+        String database = properties.getProperty("database");
+        String username = properties.getProperty("username");
+        String password = properties.getProperty("password");
+        try {
+            accessioner = new AccessionerENA(host, port, database, username, password);
+        } catch (ClassNotFoundException e) {
+            log.error("Unable to create accessioner", e);
+            accessioner = null;
+        } catch (SQLException e) {
+            log.error("Unable to create accessioner", e);
+            accessioner = null;
+        }
+        
+        corrector = new Corrector();
     }
+    
     
     private synchronized int getNewSubID() throws IOException{
         int maxSubID = 0;
@@ -131,6 +163,17 @@ public class SubmissionController {
             subdir = new File(path.toString(), subdir.toString());
             File outFile = new File(subdir, "sampletab.pre.txt");
 
+            
+            //assign accessions to sampletab object
+            synchronized(accessioner) {
+                sampledata = accessioner.convert(sampledata);
+            }
+            
+            //correct errors
+            synchronized(corrector) {
+                corrector.correct(sampledata);
+            }
+            
             SampleTabWriter writer = null;
             try {
                 writer = new SampleTabWriter(new BufferedWriter(new FileWriter(outFile)));
