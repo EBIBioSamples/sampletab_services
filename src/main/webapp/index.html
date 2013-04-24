@@ -132,7 +132,7 @@
             <div id="local-masthead" class="masthead grid_24 nomenu">
 
                 <div class="grid_12 alpha" id="local-title">
-                    <h1>SampleTab Accessioner</h1>
+                    <h1>SampleTab services</h1>
                 </div>
                 <!-- -->
 
@@ -150,41 +150,26 @@
 
 
 					<div>
-						<h2>BioSample Database SampleTab Web Accessioner</h2>
-						<p>This webpage provides a service for assigning accessions to
-							SampleTab format submissions to the BioSample Database.</p>
-						<p>Please provide the SampleTab file you wish to accession
-							into the form below. You will then be able to download a version
-							of that file that has had sample and group accessions assigned.</p>
+						<h2>BioSample Database SampleTab services</h2>
 						<p>
-						<!-- 
-							<form action="api/accession" method="post"
-								enctype="multipart/form-data">
-								SampleTab file to upload: <input type="file" name="file" /> <input
-									type="submit" value="Submit" />
-							</form>
-						 -->
-							<input type="file" name="file" id="pickfileaccession">
-						
-				</p>
-
-						<ul>
-							<li>Node: This service is currently of beta quality. If you
-								experience any problems, please report them to <a
-						href="mailto:biosamples@ebi.ac.uk?Subject=SampleTab+Web+Accessioner">
-									biosamples@ebi.ac.uk</a> and attach the SampleTab file you were
-								trying to accession.</li>
-							<li>Note: Currently we can only accession SampleTab files
-								under 8MB in size. For files approaching this size the
-								accessioning process may take several minutes.</li>
-						</ul>
-					</div> 
-					<div id="errorsdiv">
-					
-					</div> 
-					<div id="sampletabdiv">
-					
-					</div>					
+							There are several services provided for programatically sending sample information to the <a href="/biosamples"></a>BioSamples Database</a>. These are:
+							<ul>
+								<li><a href="submission.html">Submission service</a> for submitting SampleTab files. 
+								Note that they will not be immediately visible in the web interface.</li>
+								<li><a href="validation.html">Validation service</a> for validating SampleTab files without submitting.</li>
+								<li><a href="accession.html">Accessioning serivce</a> for assigning accessions to samples and groups. 
+								Note that this does not submit any sample information to the database, but will return the assigned accessions immediately.</li>
+							</ul>
+						</p>
+						<p>
+							Each of these services uses a JSON POST URL that can be accessed directly.
+						</p>
+						<p>
+							If you have any questions about these services or would like more information, please contact us at <a
+						href="mailto:biosamples@ebi.ac.uk?Subject=SampleTab+Web+Services">
+									biosamples@ebi.ac.uk</a>. 
+						</p>
+					</div> 					
 					<!-- end contents here --> <!-- InstanceEndEditable --> <img
 				src="/inc/images/spacer.gif" class="spacer"
 				alt="spacer">
@@ -270,8 +255,6 @@
             -->
             <script defer src="/web_guidelines/js/cookiebanner.js"></script>
 			<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-		
-            <script defer src="scripts/webaccession.js"></script>
             <!-- end scripts-->
             
             
