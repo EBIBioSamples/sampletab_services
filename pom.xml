@@ -60,6 +60,10 @@
 					<artifactId>spring-web</artifactId>
 					<groupId>org.springframework</groupId>
 				</exclusion>
+				<exclusion>
+		 			<artifactId>myequivalents-wscli</artifactId>
+		 			<groupId>uk.ac.ebi.fg</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
