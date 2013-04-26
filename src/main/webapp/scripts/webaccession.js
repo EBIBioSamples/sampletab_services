@@ -136,7 +136,7 @@ function doResponse(errors, sampletab) {
 			tabledata.innerHTML = error.comment;
 			tablerow.appendChild(tabledata);
 			//DEBUG
-			alert(error);
+			//alert(error);
 		}
 		errorsdiv.appendChild(errortable);
 		
