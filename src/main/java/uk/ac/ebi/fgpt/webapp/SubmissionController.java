@@ -123,11 +123,16 @@ public class SubmissionController {
         
     }
     
-    private Outcome getErrorOutcome(String message) {
+    private Outcome getErrorOutcome(String errorMessage) {
         Outcome o = new Outcome();
         List<Map<String,String>> errorList = new ArrayList<Map<String,String>>();
         Map<String, String> errorMap = new HashMap<String, String>();
-        errorMap.put("error", message);
+        //errorMap.put("type", errorItem.getErrorType());
+        //errorMap.put("code", new Integer(errorItem.getErrorCode()).toString());
+        //errorMap.put("line", new Integer(errorItem.getLine()).toString());
+        //errorMap.put("col", new Integer(errorItem.getCol()).toString());
+        errorMap.put("message", "error");
+        errorMap.put("comment", errorMessage);
         errorList.add(errorMap);
         o.setErrors(errorList);
         return o;
