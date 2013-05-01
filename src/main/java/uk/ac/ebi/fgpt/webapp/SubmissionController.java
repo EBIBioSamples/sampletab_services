@@ -136,7 +136,7 @@ public class SubmissionController {
     
     
     @RequestMapping(value = "/v1/json/sb", method = RequestMethod.POST)
-    public @ResponseBody Outcome doSubmission(@RequestBody SampleTabRequest sampletab, @RequestParam String apiKey) {
+    public @ResponseBody Outcome doSubmission(@RequestBody SampleTabRequest sampletab, String apiKey) {
         boolean isSRA = false;
         boolean isCGAP = false;
         //test API key
