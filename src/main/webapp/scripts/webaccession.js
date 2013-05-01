@@ -84,12 +84,17 @@ function handleSubmissionFileSelect(evt) {
 	filereader.onload = (function(e) {
 		//convert the string into a JSON array of arrays
 		var sampletabstring = stringToJSON2DArray(e.target.result)
+		//retrieve the API key to use
+		var apikey = document.getElementById('apikeyinput').value;
 		
 		//do the ajax call
 	    $.ajax({
            type:           'POST',
            url:            'api/v1/json/sb',
            contentType:    'application/json',
+           headers: {
+        	   apikey : apikey 
+           },
            data:           sampletabstring,
            processData:    false,
            success: function(json) {

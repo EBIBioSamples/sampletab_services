@@ -123,7 +123,7 @@ public class SubmissionController {
         
     }
     
-    private Outcome getErrorOutcome(String errorMessage) {
+    private Outcome getErrorOutcome(String message, String comment) {
         Outcome o = new Outcome();
         List<Map<String,String>> errorList = new ArrayList<Map<String,String>>();
         Map<String, String> errorMap = new HashMap<String, String>();
@@ -131,8 +131,8 @@ public class SubmissionController {
         //errorMap.put("code", new Integer(errorItem.getErrorCode()).toString());
         //errorMap.put("line", new Integer(errorItem.getLine()).toString());
         //errorMap.put("col", new Integer(errorItem.getCol()).toString());
-        errorMap.put("message", "error");
-        errorMap.put("comment", errorMessage);
+        errorMap.put("message", message);
+        errorMap.put("comment", comment);
         errorList.add(errorMap);
         o.setErrors(errorList);
         return o;
@@ -141,19 +141,19 @@ public class SubmissionController {
     
     
     @RequestMapping(value = "/v1/json/sb", method = RequestMethod.POST)
-    public @ResponseBody Outcome doSubmission(@RequestBody SampleTabRequest sampletab, String apiKey) {
+    public @ResponseBody Outcome doSubmission(@RequestBody SampleTabRequest sampletab, String apikey) {
         boolean isSRA = false;
         boolean isCGAP = false;
         //test API key
-        if (apiKey != null && apiKey.equals("NZ80KZ7G13NHYDM3")) {
+        if (apikey != null && apikey.equals("NZ80KZ7G13NHYDM3")) {
             //SRA
             isSRA = true;
-        } else if (apiKey != null && apiKey.equals("XWURYU77KWT663IQ")) {
+        } else if (apikey != null && apikey.equals("XWURYU77KWT663IQ")) {
             //CGAP
             isCGAP = true;
         } else {
             //invalid API key, return errors
-            return getErrorOutcome("Invalid API key, contact biosamples@ebi.ac.uk");
+            return getErrorOutcome("Invalid API key", "Contact biosamples@ebi.ac.uk for assistance");
         }
         
         // setup an overall try/catch to catch and report all errors
@@ -189,14 +189,14 @@ public class SubmissionController {
             if (isSRA) {
                 //extra validation for SRA
                 if (!sampledata.msi.submissionIdentifier.matches("^GEN-[ERD]R[AP][0-9]+$")) {
-                    return getErrorOutcome("SRA submission identifier must match regular expression ^GEN-[SED]R[AP][0-9]+$");
+                    return getErrorOutcome("Submission identifier invalid", "SRA submission identifier must match regular expression ^GEN-[SED]R[AP][0-9]+$");
                 }               
             } else {
                 //must be a GSB submission ID
-                if (sampledata.msi.submissionIdentifier == null || sampledata.msi.submissionIdentifier.length() == 0){
+                if (sampledata.msi.submissionIdentifier == null || sampledata.msi.submissionIdentifier.length() == 0) {
                     sampledata.msi.submissionIdentifier = "GSB-"+getNewSubID();
                 } else if (!sampledata.msi.submissionIdentifier.matches("^GSB-[1-9][0-9]*$")) {
-                    return getErrorOutcome("submission identifier must match regular expression ^GSB-[1-9][0-9]*$");
+                    return getErrorOutcome("Submission identifier invalid", "Submission identifier must match regular expression ^GSB-[1-9][0-9]*$");
                 }
             }
             File subdir = SampleTabUtils.getSubmissionDirFile(sampledata.msi.submissionIdentifier);
@@ -220,7 +220,7 @@ public class SubmissionController {
                 writer.write(sampledata);
             } catch (IOException e) {
                 log.error("Problem writing to "+outFile, e);
-                return getErrorOutcome("Error storing submission, please contact biosamples@ebi.ac.uk");
+                return getErrorOutcome("Unable to store submission", "Retry later or contact biosamples@ebi.ac.uk if this error persists");
             } finally {
                 if (writer != null) {
                     try {
@@ -237,7 +237,7 @@ public class SubmissionController {
         } catch (Exception e) {
             //general catch all for other errors, e.g SQL, IO
             log.error("Unrecognized error", e);
-            return getErrorOutcome("Unusual error with submission, please contact biosamples@ebi.ac.uk");
+            return getErrorOutcome("Unknown error", "Contact biosamples@ebi.ac.uk for assistance");
         } 
     }
     
