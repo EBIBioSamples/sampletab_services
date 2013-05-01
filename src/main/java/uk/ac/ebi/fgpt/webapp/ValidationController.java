@@ -38,8 +38,8 @@ public class ValidationController {
         
     private Logger log = LoggerFactory.getLogger(getClass());
                 
-    @RequestMapping(value = "/jsva", method = RequestMethod.POST)
-    public @ResponseBody Outcome doAccession(@RequestBody SampleTabRequest sampletab) {
+    @RequestMapping(value = "/v1/json/va", method = RequestMethod.POST)
+    public @ResponseBody Outcome doValidation(@RequestBody SampleTabRequest sampletab) {
         //setup parser to listen for errors
         SampleTabParser<SampleData> parser = new SampleTabParser<SampleData>(new SampleTabValidator());
         

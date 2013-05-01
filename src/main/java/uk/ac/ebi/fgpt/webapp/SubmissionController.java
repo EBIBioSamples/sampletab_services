@@ -123,9 +123,34 @@ public class SubmissionController {
         
     }
     
+    private Outcome getErrorOutcome(String message) {
+        Outcome o = new Outcome();
+        List<Map<String,String>> errorList = new ArrayList<Map<String,String>>();
+        Map<String, String> errorMap = new HashMap<String, String>();
+        errorMap.put("error", message);
+        errorList.add(errorMap);
+        o.setErrors(errorList);
+        return o;
+        
+    }
     
-    @RequestMapping(value = "/jssb", method = RequestMethod.POST)
-    public @ResponseBody Outcome doAccession(@RequestBody SampleTabRequest sampletab) {
+    
+    @RequestMapping(value = "/v1/json/sb", method = RequestMethod.POST)
+    public @ResponseBody Outcome doSubmission(@RequestBody SampleTabRequest sampletab, @RequestParam String apiKey) {
+        boolean isSRA = false;
+        boolean isCGAP = false;
+        //test API key
+        if (apiKey != null && apiKey.equals("NZ80KZ7G13NHYDM3")) {
+            //SRA
+            isSRA = true;
+        } else if (apiKey != null && apiKey.equals("XWURYU77KWT663IQ")) {
+            //CGAP
+            isCGAP = true;
+        } else {
+            //invalid API key, return errors
+            return getErrorOutcome("Invalid API key, contact biosamples@ebi.ac.uk");
+        }
+        
         // setup an overall try/catch to catch and report all errors
         try {
             //setup parser to listen for errors
@@ -156,8 +181,18 @@ public class SubmissionController {
             } 
             
             //look at submission id
-            if (sampledata.msi.submissionIdentifier == null || sampledata.msi.submissionIdentifier.length() == 0){
-                sampledata.msi.submissionIdentifier = "GSB-"+getNewSubID();
+            if (isSRA) {
+                //extra validation for SRA
+                if (!sampledata.msi.submissionIdentifier.matches("^GEN-[ERD]R[AP][0-9]+$")) {
+                    return getErrorOutcome("SRA submission identifier must match regular expression ^GEN-[SED]R[AP][0-9]+$");
+                }               
+            } else {
+                //must be a GSB submission ID
+                if (sampledata.msi.submissionIdentifier == null || sampledata.msi.submissionIdentifier.length() == 0){
+                    sampledata.msi.submissionIdentifier = "GSB-"+getNewSubID();
+                } else if (!sampledata.msi.submissionIdentifier.matches("^GSB-[1-9][0-9]*$")) {
+                    return getErrorOutcome("submission identifier must match regular expression ^GSB-[1-9][0-9]*$");
+                }
             }
             File subdir = SampleTabUtils.getSubmissionDirFile(sampledata.msi.submissionIdentifier);
             subdir = new File(path.toString(), subdir.toString());
@@ -180,13 +215,7 @@ public class SubmissionController {
                 writer.write(sampledata);
             } catch (IOException e) {
                 log.error("Problem writing to "+outFile, e);
-                Outcome o = new Outcome();
-                List<Map<String,String>> errorList = new ArrayList<Map<String,String>>();
-                Map<String, String> errorMap = new HashMap<String, String>();
-                errorMap.put("message", "Error storing submission, please retry");
-                errorList.add(errorMap);
-                o.setErrors(errorList);
-                return o;
+                return getErrorOutcome("Error storing submission, please contact biosamples@ebi.ac.uk");
             } finally {
                 if (writer != null) {
                     try {
@@ -203,14 +232,7 @@ public class SubmissionController {
         } catch (Exception e) {
             //general catch all for other errors, e.g SQL, IO
             log.error("Unrecognized error", e);
-            Outcome o = new Outcome();
-            List<Map<String,String>> errorList = new ArrayList<Map<String,String>>();
-            Map<String, String> errorMap = new HashMap<String, String>();
-            errorMap.put("message", "Unusual error with submission, please retry");
-            errorMap.put("comment", e.getMessage());
-            errorList.add(errorMap);
-            o.setErrors(errorList);
-            return o;
+            return getErrorOutcome("Unusual error with submission, please contact biosamples@ebi.ac.uk");
         } 
     }
     

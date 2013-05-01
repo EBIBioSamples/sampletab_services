@@ -93,8 +93,14 @@ public class AccessionerController {
         }
         
     }
+    
+    //old URL mapping for backwards compatability
+    @RequestMapping(value = "/jsac", method = RequestMethod.POST) 
+    public @ResponseBody Outcome doAccessionOld(@RequestBody SampleTabRequest sampletab) {
+        return doAccession(sampletab);
+    }
         
-    @RequestMapping(value = "/jsac", method = RequestMethod.POST)
+    @RequestMapping(value = "/v1/json/ac", method = RequestMethod.POST)
     public @ResponseBody Outcome doAccession(@RequestBody SampleTabRequest sampletab) {
         //setup parser to listen for errors
         SampleTabParser<SampleData> parser = new SampleTabParser<SampleData>();

@@ -18,7 +18,7 @@ function handleAccessionFileSelect(evt) {
 		//do the ajax call
 	    $.ajax({
            type:           'POST',
-           url:            'api/jsac',
+           url:            'api/v1/json/ac',
            contentType:    'application/json',
            data:           sampletabstring,
            processData:    false,
@@ -53,7 +53,7 @@ function handleValidationFileSelect(evt) {
 		//do the ajax call
 	    $.ajax({
            type:           'POST',
-           url:            'api/jsva',
+           url:            'api/v1/json/va',
            contentType:    'application/json',
            data:           sampletabstring,
            processData:    false,
@@ -88,7 +88,7 @@ function handleSubmissionFileSelect(evt) {
 		//do the ajax call
 	    $.ajax({
            type:           'POST',
-           url:            'api/jssb',
+           url:            'api/v1/json/sb',
            contentType:    'application/json',
            data:           sampletabstring,
            processData:    false,
