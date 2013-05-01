@@ -90,11 +90,8 @@ function handleSubmissionFileSelect(evt) {
 		//do the ajax call
 	    $.ajax({
            type:           'POST',
-           url:            'api/v1/json/sb',
+           url:            'api/v1/json/sb?apikey'+apikey,
            contentType:    'application/json',
-           xhrFields: {
-        	   apikey : apikey 
-           },
            data:           sampletabstring,
            processData:    false,
            success: function(json) {
