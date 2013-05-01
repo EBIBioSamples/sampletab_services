@@ -92,7 +92,7 @@ function handleSubmissionFileSelect(evt) {
            type:           'POST',
            url:            'api/v1/json/sb',
            contentType:    'application/json',
-           headers: {
+           xhrFields: {
         	   apikey : apikey 
            },
            data:           sampletabstring,

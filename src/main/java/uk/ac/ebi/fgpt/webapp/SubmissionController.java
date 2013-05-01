@@ -153,7 +153,7 @@ public class SubmissionController {
             isCGAP = true;
         } else {
             //invalid API key, return errors
-            return getErrorOutcome("Invalid API key", "Contact biosamples@ebi.ac.uk for assistance");
+            return getErrorOutcome("Invalid API key ("+apikey+")", "Contact biosamples@ebi.ac.uk for assistance");
         }
         
         // setup an overall try/catch to catch and report all errors
