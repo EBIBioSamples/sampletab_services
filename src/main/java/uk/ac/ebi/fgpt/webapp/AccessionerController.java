@@ -81,7 +81,7 @@ public class AccessionerController {
         //let springs default error handling take over and redirect on error.
         Writer out = null; 
         try {
-            out = new OutputStreamWriter(response.getOutputStream());
+            out = new OutputStreamWriter(response.getOutputStream(), "UTF-8");
             out.write(input);
         } finally {
             if (out != null){
