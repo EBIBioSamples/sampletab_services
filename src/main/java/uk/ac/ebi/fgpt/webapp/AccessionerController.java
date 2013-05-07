@@ -71,9 +71,11 @@ public class AccessionerController {
     @RequestMapping(value = "/echo", method = RequestMethod.POST)
     public void echo(String input, HttpServletResponse response) throws IOException {
         //set it to be marked as a download file
-        response.setContentType("application/octet-stream");
+        //response.setContentType("application/octet-stream");
+        response.setContentType("application/force-download; charset=UTF-8");
         //set the filename to download it as
-        response.addHeader("Content-Disposition","attachment; filename=sampletab.txt");
+        response.addHeader("Content-Disposition","attachment; filename=\"sampletab.txt\"");
+        response.setHeader("Content-Transfer-Encoding", "binary");
 
         //writer to the output stream
         //let springs default error handling take over and redirect on error.
