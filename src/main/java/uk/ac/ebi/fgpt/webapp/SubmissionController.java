@@ -151,6 +151,9 @@ public class SubmissionController {
         } else if (apikey != null && apikey.equals("XWURYU77KWT663IQ")) {
             //CGAP
             isCGAP = true;
+        } else if (apikey != null && apikey.equals("FZJ5VRBEZEJ5ZDP8")) {
+            //BBMRI.eu
+            isCGAP = true;
         } else {
             //invalid API key, return errors
             return getErrorOutcome("Invalid API key ("+apikey+")", "Contact biosamples@ebi.ac.uk for assistance");
