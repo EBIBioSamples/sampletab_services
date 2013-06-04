@@ -178,11 +178,11 @@ function stringToJSON2DArray(myString) {
     var lines = null;
     ///split by different line endings depending what are present in source
     if (myString.indexOf("\r\n") != -1) {
-    	myString.split("\r\n");
+    	lines = myString.split("\r\n");
     } else if (myString.indexOf("\r") != -1) {
-    	myString.split("\r");
+    	lines = myString.split("\r");
     } else if (myString.indexOf("\n") != -1) {
-    	myString.split("\n");
+    	lines = myString.split("\n");
     }
     for (var i = 0; i<lines.length; i++) {
         var line = new Array();
