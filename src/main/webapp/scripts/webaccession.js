@@ -175,7 +175,15 @@ function doResponse(errors, sampletab) {
 
 function stringToJSON2DArray(myString) {
     var content = new Array();
-    var lines = myString.split("\n");
+    var lines = null;
+    ///split by different line endings depending what are present in source
+    if (myString.indexOf("\r\n") != -1) {
+    	myString.split("\r\n");
+    } else if (myString.indexOf("\r") != -1) {
+    	myString.split("\r");
+    } else if (myString.indexOf("\n") != -1) {
+    	myString.split("\n");
+    }
     for (var i = 0; i<lines.length; i++) {
         var line = new Array();
         var cells = lines[i].split("\t");
@@ -196,7 +204,7 @@ function JSON2DArrayToString(array) {
 			response = response + cell
 			response = response + "\t";
 		}
-		response = response + "\r\n";
+		response = response + "\r\n"; //use windows line endings for best safety
 	}
 	return response;
 }
