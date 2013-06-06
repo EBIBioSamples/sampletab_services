@@ -177,7 +177,7 @@ function stringToJSON2DArray(myString) {
     var content = new Array();
     var lines = null;
     //escape doublequote characters
-    myString = myString.replace(/\"/g, "\\"");
+    myString = myString.replace(/\"/g, "\\\"");
     ///split by different line endings depending what are present in source
     if (myString.indexOf("\r\n") != -1) {
     	lines = myString.split("\r\n");
