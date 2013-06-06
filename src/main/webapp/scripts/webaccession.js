@@ -176,6 +176,8 @@ function doResponse(errors, sampletab) {
 function stringToJSON2DArray(myString) {
     var content = new Array();
     var lines = null;
+    //escape doublequote characters
+    myString = myString.replace(/\"/g, "\\"");
     ///split by different line endings depending what are present in source
     if (myString.indexOf("\r\n") != -1) {
     	lines = myString.split("\r\n");
@@ -192,7 +194,9 @@ function stringToJSON2DArray(myString) {
         }
         content.push("[" + line + "]");
     }
-    return "{\"sampletab\" : [" + content + "]}";
+    var jsonstring =  "{\"sampletab\" : [" + content + "]}";
+    $.parseJSON(jsonstring);
+    return jsonstring;
 }
 
 function JSON2DArrayToString(array) {
