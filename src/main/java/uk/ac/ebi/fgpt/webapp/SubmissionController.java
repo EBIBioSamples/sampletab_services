@@ -106,8 +106,10 @@ public class SubmissionController {
             if (!subdir.isDirectory()){
                 continue;
             } else {
+                log.info("Looking at subid "+subdir.getName()+" with pattern "+pattern.pattern());
                 Matcher match = pattern.matcher(subdir.getName());
                 if (match != null){
+                    log.info("Found match");
                     Integer subid = new Integer(match.group(1));
                     if (subid > maxSubID){
                         maxSubID = subid;
