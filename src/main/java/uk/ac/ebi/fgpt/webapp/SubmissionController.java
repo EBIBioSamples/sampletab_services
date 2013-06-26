@@ -50,7 +50,6 @@ public class SubmissionController {
     private Logger log = LoggerFactory.getLogger(getClass());
                 
     private final File path;
-    private final Pattern pattern = Pattern.compile("^GSB-([0-9]+)$");
     private AccessionerENA accessioner;
     
     private Corrector corrector;
@@ -101,14 +100,15 @@ public class SubmissionController {
     
     private synchronized int getNewSubID() throws IOException{
         int maxSubID = 0;
+        Pattern pattern = Pattern.compile("^GSB-([0-9]+)$");
         File pathSubdir = new File(path, "GSB");
-        for (File subdir : pathSubdir.listFiles()){
-            if (!subdir.isDirectory()){
+        for (File subdir : pathSubdir.listFiles()) {
+            if (!subdir.isDirectory()) {
                 continue;
             } else {
                 log.info("Looking at subid "+subdir.getName()+" with pattern "+pattern.pattern());
                 Matcher match = pattern.matcher(subdir.getName());
-                if (match != null ) {
+                if (match.matches()) {
                     log.info("Found match with "+match.groupCount()+" groups "+match.group(1));
                     Integer subid = new Integer(match.group(1));
                     if (subid > maxSubID) {
@@ -119,7 +119,7 @@ public class SubmissionController {
         }
         maxSubID++;
         File subDir = SampleTabUtils.getSubmissionDirFile("GSB-"+maxSubID);
-        if (!subDir.mkdirs()){
+        if (!subDir.mkdirs()) {
             throw new IOException("Unable to create submission directory");
         }
         return maxSubID;
