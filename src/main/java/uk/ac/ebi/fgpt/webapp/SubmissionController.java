@@ -118,7 +118,7 @@ public class SubmissionController {
             }
         }
         maxSubID++;
-        File subDir = SampleTabUtils.getSubmissionDirFile("GSB-"+maxSubID);
+        File subDir = new File(path.getAbsolutePath(), SampleTabUtils.getSubmissionDirFile("GSB-"+maxSubID).toString());
         if (!subDir.mkdirs()) {
             throw new IOException("Unable to create submission directory");
         }
