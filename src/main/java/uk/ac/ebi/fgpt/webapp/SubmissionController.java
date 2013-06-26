@@ -50,7 +50,7 @@ public class SubmissionController {
     private Logger log = LoggerFactory.getLogger(getClass());
                 
     private final File path;
-    private final Pattern pattern = Pattern.compile("^GSB-([0-9]++)$");
+    private final Pattern pattern = Pattern.compile("^GSB-([0-9]+)$");
     private AccessionerENA accessioner;
     
     private Corrector corrector;
@@ -108,10 +108,10 @@ public class SubmissionController {
             } else {
                 log.info("Looking at subid "+subdir.getName()+" with pattern "+pattern.pattern());
                 Matcher match = pattern.matcher(subdir.getName());
-                if (match != null){
-                    log.info("Found match");
+                if (match != null ) {
+                    log.info("Found match with "+match.groupCount()+" groups");
                     Integer subid = new Integer(match.group(1));
-                    if (subid > maxSubID){
+                    if (subid > maxSubID) {
                         maxSubID = subid;
                     }
                 }
