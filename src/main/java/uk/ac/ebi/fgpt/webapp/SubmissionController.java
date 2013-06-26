@@ -101,7 +101,8 @@ public class SubmissionController {
     
     private synchronized int getNewSubID() throws IOException{
         int maxSubID = 0;
-        for (File subdir : path.listFiles()){
+        File pathSubdir = new File(path, "GSB");
+        for (File subdir : pathSubdir.listFiles()){
             if (!subdir.isDirectory()){
                 continue;
             } else {
