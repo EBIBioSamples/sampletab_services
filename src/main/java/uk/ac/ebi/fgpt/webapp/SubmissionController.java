@@ -50,7 +50,7 @@ public class SubmissionController {
     private Logger log = LoggerFactory.getLogger(getClass());
                 
     private final File path;
-    private final Pattern pattern = Pattern.compile("^GSB-\\(([0-9]++)\\)$");
+    private final Pattern pattern = Pattern.compile("^GSB-([0-9]++)$");
     private AccessionerENA accessioner;
     
     private Corrector corrector;
