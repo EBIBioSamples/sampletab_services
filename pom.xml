@@ -83,6 +83,18 @@
 
 	</dependencies>
 
+	<repositories>
+		<!-- EBI internal repository -->
+		<repository>
+			<id>coconut.ebi.ac.uk-snapshots</id>
+			<name>Coconut Snapshot Repository</name>
+			<url>http://coconut.ebi.ac.uk:8081/artifactory/local-repo/</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
 	<profiles>
 		<!-- profile for production, uses files from resources-production -->
 		<profile>
