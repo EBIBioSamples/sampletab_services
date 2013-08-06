@@ -110,6 +110,26 @@
 				</resources>
 			</build>
 			<dependencies>
+				<!-- SampleTab dependencies -->
+				<dependency>
+					<groupId>uk.ac.ebi.fgpt</groupId>
+					<artifactId>sampletab-converters</artifactId>
+					<version>1.0.4</version>
+					<exclusions>
+						<exclusion>
+							<artifactId>jackson-mapper-asl</artifactId>
+							<groupId>org.codehaus.jackson</groupId>
+						</exclusion>
+						<exclusion>
+							<artifactId>spring-web</artifactId>
+							<groupId>org.springframework</groupId>
+						</exclusion>
+						<exclusion>
+				 			<artifactId>myequivalents-wscli</artifactId>
+				 			<groupId>uk.ac.ebi.fg</groupId>
+						</exclusion>
+					</exclusions>
+				</dependency>
 			</dependencies>
 		</profile>
 
@@ -127,6 +147,26 @@
 				</resources>
 			</build>
 			<dependencies>
+				<!-- SampleTab dependencies -->
+				<dependency>
+					<groupId>uk.ac.ebi.fgpt</groupId>
+					<artifactId>sampletab-converters</artifactId>
+					<version>1.0.4-SNAPSHOT</version>
+					<exclusions>
+						<exclusion>
+							<artifactId>jackson-mapper-asl</artifactId>
+							<groupId>org.codehaus.jackson</groupId>
+						</exclusion>
+						<exclusion>
+							<artifactId>spring-web</artifactId>
+							<groupId>org.springframework</groupId>
+						</exclusion>
+						<exclusion>
+				 			<artifactId>myequivalents-wscli</artifactId>
+				 			<groupId>uk.ac.ebi.fg</groupId>
+						</exclusion>
+					</exclusions>
+				</dependency>
 			</dependencies>
 		</profile>
 
@@ -144,6 +184,26 @@
 				</resources>
 			</build>
 			<dependencies>
+				<!-- SampleTab dependencies -->
+				<dependency>
+					<groupId>uk.ac.ebi.fgpt</groupId>
+					<artifactId>sampletab-converters</artifactId>
+					<version>1.0.4-SNAPSHOT</version>
+					<exclusions>
+						<exclusion>
+							<artifactId>jackson-mapper-asl</artifactId>
+							<groupId>org.codehaus.jackson</groupId>
+						</exclusion>
+						<exclusion>
+							<artifactId>spring-web</artifactId>
+							<groupId>org.springframework</groupId>
+						</exclusion>
+						<exclusion>
+				 			<artifactId>myequivalents-wscli</artifactId>
+				 			<groupId>uk.ac.ebi.fg</groupId>
+						</exclusion>
+					</exclusions>
+				</dependency>
 			</dependencies>
 		</profile>
 	</profiles>
