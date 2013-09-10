@@ -148,6 +148,9 @@ public class SubmissionController {
         boolean isSRA = false;
         boolean isCGAP = false;
         //test API key
+        //generate keys with following python:
+        //  "".join([random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789") for x in xrange(16)])
+
         if (apikey != null && apikey.equals("NZ80KZ7G13NHYDM3")) {
             //SRA
             isSRA = true;
@@ -157,6 +160,8 @@ public class SubmissionController {
         } else if (apikey != null && apikey.equals("FZJ5VRBEZEJ5ZDP8")) {
             //BBMRI.eu
             isCGAP = true;
+        } else if (apikey != null && apikey.equals("Y1Y1PKRGPP7PWD82")) {
+            //internal
         } else {
             //invalid API key, return errors
             return getErrorOutcome("Invalid API key ("+apikey+")", "Contact biosamples@ebi.ac.uk for assistance");
@@ -194,7 +199,7 @@ public class SubmissionController {
             //look at submission id
             if (isSRA) {
                 //extra validation for SRA
-                if (!sampledata.msi.submissionIdentifier.matches("^GEN-[ERD]R[AP][0-9]+$")) {
+                if (sampledata.msi.submissionIdentifier == null || !sampledata.msi.submissionIdentifier.matches("^GEN-[ERD]R[AP][0-9]+$")) {
                     return getErrorOutcome("Submission identifier invalid", "SRA submission identifier must match regular expression ^GEN-[SED]R[AP][0-9]+$");
                 }               
             } else {

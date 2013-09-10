@@ -96,6 +96,58 @@ public class AccessionerController {
         
     }
     
+    /*
+
+    public class RESTAccession {
+        
+        private String sampleName = null;
+        private String submissionIdenitifier = null;
+        private String sampleAccession = null;
+        
+        public RESTAccession() {
+            
+        }
+
+        public String getSampleName() {
+            return sampleName;
+        }
+
+        public void setSampleName(String sampleName) {
+            this.sampleName = sampleName;
+        }
+
+        public String getSubmissionIdenitifier() {
+            return submissionIdenitifier;
+        }
+
+        public void setSubmissionIdenitifier(String submissionIdenitifier) {
+            this.submissionIdenitifier = submissionIdenitifier;
+        }
+
+        public String getSampleAccession() {
+            return sampleAccession;
+        }
+
+        public void setSampleAccession(String sampleAccession) {
+            this.sampleAccession = sampleAccession;
+        }
+    }
+    
+    @RequestMapping(value = "/v1/rest/ac", method = RequestMethod.GET)
+    public @ResponseBody RESTAccession doAccessionREST(String sampleName, String submissionIdenitifier) {
+        RESTAccession result = new RESTAccession();
+        result.setSampleName(sampleName);
+        result.setSubmissionIdenitifier(submissionIdenitifier);
+        
+        //assign accessions to sampletab object
+        accessioner = getAccessioner();
+        String sampleAccession = accessioner.
+        result.setSampleAccession(sampleAccession);
+        return result;
+    }
+    
+    */
+    
     //old URL mapping for backwards compatability
     @RequestMapping(value = "/jsac", method = RequestMethod.POST) 
     public @ResponseBody Outcome doAccessionOld(@RequestBody SampleTabRequest sampletab) {
