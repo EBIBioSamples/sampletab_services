@@ -1,17 +1,5 @@
 package uk.ac.ebi.fgpt.webapp;
 
-import org.mged.magetab.error.ErrorItem;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
-
-import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
-import uk.ac.ebi.arrayexpress2.magetab.listener.ErrorItemListener;
-import uk.ac.ebi.arrayexpress2.sampletab.datamodel.SampleData;
-import uk.ac.ebi.arrayexpress2.sampletab.parser.SampleTabParser;
-import uk.ac.ebi.fgpt.sampletab.AccessionerENA;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +13,21 @@ import java.util.Map;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletResponse;
+
+import org.mged.magetab.error.ErrorItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
+import uk.ac.ebi.arrayexpress2.magetab.listener.ErrorItemListener;
+import uk.ac.ebi.arrayexpress2.sampletab.datamodel.SampleData;
+import uk.ac.ebi.arrayexpress2.sampletab.parser.SampleTabParser;
+import uk.ac.ebi.fgpt.sampletab.AccessionerENA;
 
 /**
  * A spring controller that returns an accessioned version of a POSTed SampleTab
