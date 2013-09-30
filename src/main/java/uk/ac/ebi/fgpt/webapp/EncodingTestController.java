@@ -39,8 +39,10 @@ public class EncodingTestController {
         try {
             
             //for GSB-2 (mosquitoes) the description has lots of UTF-8 characters
-            log.info("Test 1");
-            log.info(sampletab.getSampleTab().get(3).get(1));
+            log.info("Test 1a");
+            log.info("2,0 "+sampletab.getSampleTab().get(2).get(0));
+            log.info("3,0 "+sampletab.getSampleTab().get(3).get(0));
+            log.info("3,1 "+sampletab.getSampleTab().get(3).get(1));
             
             //setup parser to listen for errors
             SampleTabParser<SampleData> parser = new SampleTabParser<SampleData>(new SampleTabValidator());
@@ -63,7 +65,7 @@ public class EncodingTestController {
             //will also validate
             SampleData sampledata = parser.parse(is);
 
-            log.info("Test 1");
+            log.info("Test 1b");
             log.info(sampledata.msi.submissionDescription);
             
             
