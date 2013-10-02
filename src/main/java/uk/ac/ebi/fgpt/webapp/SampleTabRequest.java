@@ -38,7 +38,7 @@ public class SampleTabRequest {
 
     //internal function for combining the list of lists into a tab/newline separated string
     public String asSingleString() {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(); //this will handle UTF-8 fine
         boolean firstLine = true;
         for (List<String> line : sampletab){
             if (!firstLine){
