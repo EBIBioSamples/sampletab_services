@@ -197,7 +197,12 @@ public class SubmissionController {
                 //extra validation for SRA
                 if (sampledata.msi.submissionIdentifier == null || !sampledata.msi.submissionIdentifier.matches("^GEN-[ERD]R[AP][0-9]+$")) {
                     return getErrorOutcome("Submission identifier invalid", "SRA submission identifier must match regular expression ^GEN-[SED]R[AP][0-9]+$");
-                }               
+                }         
+            } else if (isCGAP) {
+                //extra validation for HipScip
+                if (sampledata.msi.submissionIdentifier == null || !sampledata.msi.submissionIdentifier.matches("^GCG-HipSci$")) {
+                    return getErrorOutcome("Submission identifier invalid", "Submission identifier must match GCG-HipSci");
+                }         
             } else {
                 //must be a GSB submission ID
                 if (sampledata.msi.submissionIdentifier == null || sampledata.msi.submissionIdentifier.length() == 0) {
