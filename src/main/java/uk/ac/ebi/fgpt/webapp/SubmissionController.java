@@ -155,7 +155,6 @@ public class SubmissionController {
             isCGAP = true;
         } else if (apikey != null && apikey.equals("FZJ5VRBEZEJ5ZDP8")) {
             //BBMRI.eu
-            isCGAP = true;
         } else if (apikey != null && apikey.equals("Y1Y1PKRGPP7PWD82")) {
             //internal
         } else {
