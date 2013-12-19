@@ -202,6 +202,8 @@ public class SubmissionController {
                 if (sampledata.msi.submissionIdentifier == null || !sampledata.msi.submissionIdentifier.matches("^GCG-HipSci$")) {
                     return getErrorOutcome("Submission identifier invalid", "Submission identifier must match GCG-HipSci");
                 }         
+                //do some re-routing
+                sampledata.msi.submissionIdentifier = "GSB-3";
             } else {
                 //must be a GSB submission ID
                 if (sampledata.msi.submissionIdentifier == null || sampledata.msi.submissionIdentifier.length() == 0) {
