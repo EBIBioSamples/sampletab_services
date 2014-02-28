@@ -229,7 +229,7 @@ public class SubmissionController {
             
             SampleTabWriter writer = null;
             try {
-                if (!outFile.mkdirs()) {
+                if (!subdir.mkdirs()) {
                     throw new IOException("Unable to create parent directories");
                 }
                 writer = new SampleTabWriter(new BufferedWriter(new FileWriter(outFile)));
