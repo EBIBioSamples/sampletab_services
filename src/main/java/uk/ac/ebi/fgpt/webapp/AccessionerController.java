@@ -179,6 +179,10 @@ public class AccessionerController {
             
             //parse the input into sampletab
             SampleData sampledata = parser.parse(is);
+            //some corrections for hipsci
+            if (sampledata.msi.submissionIdentifier.equals("GCG-HipSci")) {
+                sampledata.msi.submissionIdentifier = "GSB-3";
+            }
             
             //assign accessions to sampletab object
             accessioner = getAccessioner();
