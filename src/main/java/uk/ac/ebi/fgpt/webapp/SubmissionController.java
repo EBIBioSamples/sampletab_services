@@ -145,7 +145,8 @@ public class SubmissionController {
         boolean isCGAP = false;
         //test API key
         //generate keys with following python:
-        //  "".join([random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789") for x in xrange(16)])
+        //  "".join([random.choice("ABCDEFGHKLMNPRTUWXY0123456789") for x in xrange(16)])
+        //NB: avoid similar looking letters/numbers
 
         if (apikey != null && apikey.equals("NZ80KZ7G13NHYDM3")) {
             //SRA
@@ -155,6 +156,8 @@ public class SubmissionController {
             isCGAP = true;
         } else if (apikey != null && apikey.equals("FZJ5VRBEZEJ5ZDP8")) {
             //BBMRI.eu
+        } else if (apikey != null && apikey.equals("P6RR7LPGH7PBYR9E")) {
+            //EVA
         } else if (apikey != null && apikey.equals("Y1Y1PKRGPP7PWD82")) {
             //internal
         } else {
