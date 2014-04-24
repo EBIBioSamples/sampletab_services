@@ -158,6 +158,10 @@ public class SubmissionController {
             //BBMRI.eu
         } else if (apikey != null && apikey.equals("P6RR7LPGH7PBYR9E")) {
             //EVA
+        } else if (apikey != null && apikey.equals("EL1NRAAGEDCWKB5D")) {
+            //PRIDE
+        } else if (apikey != null && apikey.equals("XCG5UNPFKELPEL50")) {
+            //ArrayExpress
         } else if (apikey != null && apikey.equals("Y1Y1PKRGPP7PWD82")) {
             //internal
         } else {
