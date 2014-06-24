@@ -149,7 +149,7 @@ public class SubmissionController {
             return getErrorOutcome("Invalid API key ("+apikey+")", "Contact biosamples@ebi.ac.uk for assistance");
         }
         
-        isSRA = "SRA".equals(keyOwner);
+        isSRA = "ENA".equals(keyOwner);
         isCGAP = "CGAP".equals(keyOwner);
         
         // setup an overall try/catch to catch and report all errors

@@ -8,7 +8,7 @@ public class APIKey {
         //  "".join([random.choice("ABCDEFGHKLMNPRTUWXY0123456789") for x in xrange(16)])
         //NB: avoid similar looking letters/numbers
         if (apikey != null && apikey.equals("NZ80KZ7G13NHYDM3")) {
-            return "SRA";
+            return "ENA";
         } else if (apikey != null && apikey.equals("XWURYU77KWT663IQ")) {
             return "CGAP";
         } else if (apikey != null && apikey.equals("FZJ5VRBEZEJ5ZDP8")) {
