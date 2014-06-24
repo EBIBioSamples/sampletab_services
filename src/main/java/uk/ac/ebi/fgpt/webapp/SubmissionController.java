@@ -80,15 +80,8 @@ public class SubmissionController {
         String database = properties.getProperty("database");
         String username = properties.getProperty("username");
         String password = properties.getProperty("password");
-        try {
-            accessioner = new AccessionerENA(host, port, database, username, password);
-        } catch (ClassNotFoundException e) {
-            log.error("Unable to create accessioner", e);
-            accessioner = null;
-        } catch (SQLException e) {
-            log.error("Unable to create accessioner", e);
-            accessioner = null;
-        }
+        
+        accessioner = new AccessionerENA(host, port, database, username, password);
         
         corrector = new Corrector();
     }
@@ -118,11 +111,15 @@ public class SubmissionController {
         if (!subDir.mkdirs()) {
             throw new IOException("Unable to create submission directory");
         }
+        //can't do linux-specific group writing, so make all writable.
+        //won't be too bad, since the parent directory should not be world writable
+        subDir.setWritable(true, false);
+        
         return maxSubID;
         
     }
     
-    private Outcome getErrorOutcome(String message, String comment) {
+    private static Outcome getErrorOutcome(String message, String comment) {
         Outcome o = new Outcome();
         List<Map<String,String>> errorList = new ArrayList<Map<String,String>>();
         Map<String, String> errorMap = new HashMap<String, String>();
@@ -143,31 +140,17 @@ public class SubmissionController {
     public @ResponseBody Outcome doSubmission(@RequestBody SampleTabRequest sampletab, String apikey) {
         boolean isSRA = false;
         boolean isCGAP = false;
-        //test API key
-        //generate keys with following python:
-        //  "".join([random.choice("ABCDEFGHKLMNPRTUWXY0123456789") for x in xrange(16)])
-        //NB: avoid similar looking letters/numbers
-
-        if (apikey != null && apikey.equals("NZ80KZ7G13NHYDM3")) {
-            //SRA
-            isSRA = true;
-        } else if (apikey != null && apikey.equals("XWURYU77KWT663IQ")) {
-            //CGAP
-            isCGAP = true;
-        } else if (apikey != null && apikey.equals("FZJ5VRBEZEJ5ZDP8")) {
-            //BBMRI.eu
-        } else if (apikey != null && apikey.equals("P6RR7LPGH7PBYR9E")) {
-            //EVA
-        } else if (apikey != null && apikey.equals("EL1NRAAGEDCWKB5D")) {
-            //PRIDE
-        } else if (apikey != null && apikey.equals("XCG5UNPFKELPEL50")) {
-            //ArrayExpress
-        } else if (apikey != null && apikey.equals("Y1Y1PKRGPP7PWD82")) {
-            //internal
-        } else {
+        
+        String keyOwner;
+        try { 
+            keyOwner = APIKey.getAPIKeyOwner(apikey);
+        } catch (IllegalArgumentException e) {
             //invalid API key, return errors
             return getErrorOutcome("Invalid API key ("+apikey+")", "Contact biosamples@ebi.ac.uk for assistance");
         }
+        
+        isSRA = "SRA".equals(keyOwner);
+        isCGAP = "CGAP".equals(keyOwner);
         
         // setup an overall try/catch to catch and report all errors
         try {
