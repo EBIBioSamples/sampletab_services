@@ -1,12 +1,8 @@
-package uk.ac.ebi.fgpt.webapp;
+package uk.ac.ebi.fgpt.webapp.v2;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -20,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import uk.ac.ebi.fgpt.sampletab.Accessioner;
-import uk.ac.ebi.fgpt.sampletab.AccessionerENA;
+import uk.ac.ebi.fgpt.webapp.APIKey;
 
 @Controller
 @RequestMapping("/v2")
@@ -38,7 +34,7 @@ public class RestfulController {
     public RestfulController() {
         Properties properties = new Properties();
         try {
-            InputStream is = AccessionerController.class.getResourceAsStream("/oracle.properties");
+            InputStream is = getClass().getResourceAsStream("/oracle.properties");
             properties.load(is);
         } catch (IOException e) {
             log.error("Unable to read resource properties", e);
@@ -63,23 +59,7 @@ public class RestfulController {
         return accessioner;
     }
     
-    @RequestMapping(value="/{source}/sample/{sourceid}", method=RequestMethod.PUT)
-    public @ResponseBody String createAccession(@PathVariable String source, @PathVariable String sourceid, @RequestParam String apikey) 
-        throws SQLException, ClassNotFoundException {
-        String newAccession = getAccessioner().singleAssaySample(sourceid, source);
-
-        String keyOwner = APIKey.getAPIKeyOwner(apikey);
-        //TODO handle wrong api keys better
-        
-        if (!APIKey.canKeyOwnerEditSource(keyOwner, source)) {
-            //TODO handle invalid key better
-            throw new IllegalArgumentException("apikey is not permitted for source");
-        }
-        
-        return newAccession;
-    }
-    
-    @RequestMapping(value="/{source}/sample", method=RequestMethod.POST, produces="text/plain")
+    @RequestMapping(value="/source/{source}/sample", method=RequestMethod.POST, produces="text/plain")
     public @ResponseBody String createAccession(@PathVariable String source, @RequestParam String apikey) 
         throws SQLException, ClassNotFoundException {
         String newAccession = getAccessioner().singleAssaySample(source);
@@ -93,5 +73,29 @@ public class RestfulController {
         }
         
         return newAccession;
+    }
+    
+    @RequestMapping(value="/source/{source}/sample/{sourceid}", method=RequestMethod.PUT, produces="text/plain")
+    public @ResponseBody String createAccession(@PathVariable String source, @PathVariable String sourceid, @RequestParam String apikey) 
+        throws SQLException, ClassNotFoundException {
+        
+        if (sourceid.matches("SAMEA[0-9]*")) {
+            //sourceid is a biosample accession already
+            //TODO check that this biosample accession belongs to this source
+            return sourceid;
+        } else {
+            //source id is not a biosample accession
+            String newAccession = getAccessioner().singleAssaySample(sourceid, source);
+
+            String keyOwner = APIKey.getAPIKeyOwner(apikey);
+            //TODO handle wrong api keys better
+            
+            if (!APIKey.canKeyOwnerEditSource(keyOwner, source)) {
+                //TODO handle invalid key better
+                throw new IllegalArgumentException("apikey is not permitted for source");
+            }
+            
+            return newAccession;
+        }
     }
 }

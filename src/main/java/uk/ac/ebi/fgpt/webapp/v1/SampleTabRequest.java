@@ -1,4 +1,4 @@
-package uk.ac.ebi.fgpt.webapp;
+package uk.ac.ebi.fgpt.webapp.v1;
 
 import java.util.List;
 

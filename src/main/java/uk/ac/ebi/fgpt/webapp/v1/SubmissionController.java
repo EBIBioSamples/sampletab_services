@@ -1,4 +1,4 @@
-package uk.ac.ebi.fgpt.webapp;
+package uk.ac.ebi.fgpt.webapp.v1;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
@@ -32,6 +32,7 @@ import uk.ac.ebi.arrayexpress2.sampletab.renderer.SampleTabWriter;
 import uk.ac.ebi.fgpt.sampletab.AccessionerENA;
 import uk.ac.ebi.fgpt.sampletab.Corrector;
 import uk.ac.ebi.fgpt.sampletab.utils.SampleTabUtils;
+import uk.ac.ebi.fgpt.webapp.APIKey;
 
 /**
  * A spring controller that returns an accessioned version of a POSTed SampleTab
@@ -46,7 +47,14 @@ public class SubmissionController {
     private Logger log = LoggerFactory.getLogger(getClass());
                 
     private final File path;
-    private AccessionerENA accessioner;
+    private AccessionerENA accessioner = null;
+
+    private String host;
+    private Integer port;
+    private String database;
+    private String username;
+    private String password;
+    
     
     private Corrector corrector;
     
@@ -75,14 +83,12 @@ public class SubmissionController {
             return;
         }
         
-        String host = properties.getProperty("hostname");
-        Integer port = new Integer(properties.getProperty("port"));
-        String database = properties.getProperty("database");
-        String username = properties.getProperty("username");
-        String password = properties.getProperty("password");
-        
-        accessioner = new AccessionerENA(host, port, database, username, password);
-        
+        host = properties.getProperty("hostname");
+        port = new Integer(properties.getProperty("port"));
+        database = properties.getProperty("database");
+        username = properties.getProperty("username");
+        password = properties.getProperty("password");
+                
         corrector = new Corrector();
     }
     
@@ -208,8 +214,11 @@ public class SubmissionController {
 
             
             //assign accessions to sampletab object
-            synchronized(accessioner) {
+            synchronized(this) {
+                accessioner = new AccessionerENA(host, port, database, username, password);
                 sampledata = accessioner.convert(sampledata);
+                accessioner.close();
+                accessioner = null;
             }
             
             //correct errors
