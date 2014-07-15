@@ -35,10 +35,10 @@ public class APIKey {
             throw new IllegalArgumentException();
         }
         
-        if ("BioSamples".equals(keyOwner)) {
+        if ("BioSamples".toLowerCase().equals(keyOwner.toLowerCase())) {
             //BioSamples key can edit anything
             return true;
-        } else if (source.equals(keyOwner)) {
+        } else if (source.toLowerCase().equals(keyOwner.toLowerCase())) {
             //source key can edit their own samples
             return true;
         } else {

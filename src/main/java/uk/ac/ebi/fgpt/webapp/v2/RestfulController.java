@@ -79,12 +79,17 @@ public class RestfulController {
     public @ResponseBody String createAccession(@PathVariable String source, @PathVariable String sourceid, @RequestParam String apikey) 
         throws SQLException, ClassNotFoundException {
         
+        //ensure source is case insensitive
+        source = source.toLowerCase();
+        
         if (sourceid.matches("SAMEA[0-9]*")) {
             //sourceid is a biosample accession already
             //TODO check that this biosample accession belongs to this source
             return sourceid;
         } else {
             //source id is not a biosample accession
+            
+            
             String newAccession = getAccessioner().singleAssaySample(sourceid, source);
 
             String keyOwner = APIKey.getAPIKeyOwner(apikey);
