@@ -65,7 +65,7 @@ public class RestfulController {
             InputStream is = getClass().getResourceAsStream("/oracle.properties");
             properties.load(is);
         } catch (IOException e) {
-            log.error("Unable to read resource properties", e);
+            log.error("Unable to read resource oracle.properties", e);
             this.host = null;
             this.port = -1;
             this.database = null;
@@ -80,6 +80,14 @@ public class RestfulController {
         this.password = properties.getProperty("password");
         
 
+        try {
+            InputStream is = getClass().getResourceAsStream("/sampletab.properties");
+            properties.load(is);
+        } catch (IOException e) {
+            log.error("Unable to read resource sampletab.properties", e);
+            return;
+        }
+        
         path = new File(properties.getProperty("submissionpath"));
         if (!path.exists()){
             //TODO throw error
