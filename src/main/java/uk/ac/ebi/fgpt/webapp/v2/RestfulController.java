@@ -103,7 +103,7 @@ public class RestfulController {
     }
     
     @RequestMapping(value="/source/{source}/sample", method=RequestMethod.POST, produces="text/plain")
-    public @ResponseBody String createAccession(@PathVariable String source, @RequestParam String apikey) 
+    public @ResponseBody String createAccession(@PathVariable String source, @RequestParam String apikey, @RequestBody BioSampleType sample) 
         throws SQLException, ClassNotFoundException, ParseException, IOException {
         //ensure source is case insensitive
         source = source.toLowerCase();
@@ -117,15 +117,6 @@ public class RestfulController {
         }
         
         String newAccession = getAccessioner().singleAssaySample(source);
-        
-        return newAccession;
-    }
-    
-    @RequestMapping(value="/source/{source}/sample", method=RequestMethod.POST, produces="text/plain")
-    public @ResponseBody String createAccession(@PathVariable String source, @RequestParam String apikey, @RequestBody BioSampleType sample) 
-        throws SQLException, ClassNotFoundException, ParseException, IOException {
-        
-        String newAccession = createAccession(source, apikey);
         
         //a request body was provided, so save it somewhere
         saveSampleData(handleBioSampleType(sample));
