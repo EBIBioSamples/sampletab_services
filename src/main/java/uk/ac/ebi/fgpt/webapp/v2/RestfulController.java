@@ -183,7 +183,6 @@ public class RestfulController {
         // take the JaxB created object and produce a more typical SampleData storage
         SampleData sd = new SampleData();
         SampleNode sample = new SampleNode();
-        sd.scd.addNode(sample);
         
         for (PropertyType property : xmlSample.getProperty()) {
             for (QualifiedValueType value : property.getQualifiedValue()) {
@@ -224,6 +223,9 @@ public class RestfulController {
         for (DatabaseType db : xmlSample.getDatabase()) {
             sample.addAttribute(new DatabaseAttribute(db.getName(), db.getID(), db.getURI()));
         } 
+        
+        //add the sample to the scd section after it has been fully constructed
+        sd.scd.addNode(sample);
         
         return sd;
     }
