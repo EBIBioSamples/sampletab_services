@@ -138,7 +138,17 @@
 				 			<artifactId>myequivalents-wscli</artifactId>
 				 			<groupId>uk.ac.ebi.fg</groupId>
 						</exclusion>
+						<exclusion>
+							<groupId>net.sourceforge.fluxion</groupId>
+							<artifactId>fluxion-spi</artifactId>
+						</exclusion>
 					</exclusions>
+				</dependency>
+				
+				<dependency>
+					<groupId>net.sourceforge.fluxion</groupId>
+					<artifactId>fluxion-spi</artifactId>
+					<version>1.0-alpha-3</version>
 				</dependency>
 			</dependencies>
 		</profile>
@@ -175,7 +185,17 @@
 				 			<artifactId>myequivalents-wscli</artifactId>
 				 			<groupId>uk.ac.ebi.fg</groupId>
 						</exclusion>
+						<exclusion>
+							<groupId>net.sourceforge.fluxion</groupId>
+							<artifactId>fluxion-spi</artifactId>
+						</exclusion>
 					</exclusions>
+				</dependency>
+				
+				<dependency>
+					<groupId>net.sourceforge.fluxion</groupId>
+					<artifactId>fluxion-spi</artifactId>
+					<version>1.0-alpha-3</version>
 				</dependency>
 			</dependencies>
 		</profile>
@@ -212,7 +232,17 @@
 				 			<artifactId>myequivalents-wscli</artifactId>
 				 			<groupId>uk.ac.ebi.fg</groupId>
 						</exclusion>
+						<exclusion>
+							<groupId>net.sourceforge.fluxion</groupId>
+							<artifactId>fluxion-spi</artifactId>
+						</exclusion>
 					</exclusions>
+				</dependency>
+				
+				<dependency>
+					<groupId>net.sourceforge.fluxion</groupId>
+					<artifactId>fluxion-spi</artifactId>
+					<version>1.0-alpha-3</version>
 				</dependency>
 			</dependencies>
 		</profile>
