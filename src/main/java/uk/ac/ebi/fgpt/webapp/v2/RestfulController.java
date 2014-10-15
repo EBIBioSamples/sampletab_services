@@ -102,21 +102,12 @@ public class RestfulController {
         return accessioner;
     }
     
+    
+    
     @RequestMapping(value="/source/{source}/sample", method=RequestMethod.POST, produces="text/plain", consumes="application/xml")
     public @ResponseBody String createAccession(@PathVariable String source, @RequestParam String apikey, @RequestBody BioSampleType sample) 
         throws SQLException, ClassNotFoundException, ParseException, IOException {
-        //ensure source is case insensitive
-        source = source.toLowerCase();
-
-        String keyOwner = APIKey.getAPIKeyOwner(apikey);
-        //TODO handle wrong api keys better
-        
-        if (!APIKey.canKeyOwnerEditSource(keyOwner, source)) {
-            //TODO handle invalid key better
-            throw new IllegalArgumentException("apikey is not permitted for source");
-        }
-        
-        String newAccession = getAccessioner().singleAssaySample(source);
+        String newAccession = createAccession(source, apikey);
         
         //a request body was provided, so save it somewhere
         saveSampleData(handleBioSampleType(sample));
@@ -142,19 +133,28 @@ public class RestfulController {
         
         return newAccession;
     }
+    
+    
 
     @RequestMapping(value="/source/{source}/sample/{sourceid}", method=RequestMethod.PUT, produces="text/plain", consumes="application/xml")
     public @ResponseBody String createAccession(@PathVariable String source, @PathVariable String sourceid, @RequestParam String apikey, @RequestBody BioSampleType sample) 
         throws SQLException, ClassNotFoundException, ParseException, IOException {
         
-        //ensure source is case insensitive
-        source = source.toLowerCase();
-
         SampleData sd = handleBioSampleType(sample);
         if (sd != null) {
             //a request body was provided, so save it somewhere
             saveSampleData(sd);
         }
+        
+        return createAccession(source, sourceid, apikey);
+    }
+
+    @RequestMapping(value="/source/{source}/sample/{sourceid}", method=RequestMethod.PUT, produces="text/plain")
+    public @ResponseBody String createAccession(@PathVariable String source, @PathVariable String sourceid, @RequestParam String apikey) 
+        throws SQLException, ClassNotFoundException, ParseException, IOException {
+        
+        //ensure source is case insensitive
+        source = source.toLowerCase();
         
         if (sourceid.matches("SAMEA[0-9]*")) {
             //sourceid is a biosample accession already
@@ -175,6 +175,9 @@ public class RestfulController {
             return newAccession;
         }
     }
+    
+    
+    
     
     private SampleData handleBioSampleType(BioSampleType xmlSample) throws ParseException {
         // take the JaxB created object and produce a more typical SampleData storage
