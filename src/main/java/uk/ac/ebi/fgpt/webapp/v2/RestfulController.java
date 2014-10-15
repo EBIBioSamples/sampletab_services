@@ -37,12 +37,12 @@ import uk.ac.ebi.arrayexpress2.sampletab.renderer.SampleTabWriter;
 
 import uk.ac.ebi.fgpt.sampletab.Accessioner;
 import uk.ac.ebi.fgpt.sampletab.utils.SampleTabUtils;
+import uk.ac.ebi.fgpt.sampletab.utils.samplegroupexport.BioSampleType;
+import uk.ac.ebi.fgpt.sampletab.utils.samplegroupexport.DatabaseType;
+import uk.ac.ebi.fgpt.sampletab.utils.samplegroupexport.PropertyType;
+import uk.ac.ebi.fgpt.sampletab.utils.samplegroupexport.QualifiedValueType;
+import uk.ac.ebi.fgpt.sampletab.utils.samplegroupexport.TermSourceREFType;
 import uk.ac.ebi.fgpt.webapp.APIKey;
-import uk.ac.ebi.fgpt.webapp.v2.xml.samplegroupexport.BioSampleType;
-import uk.ac.ebi.fgpt.webapp.v2.xml.samplegroupexport.DatabaseType;
-import uk.ac.ebi.fgpt.webapp.v2.xml.samplegroupexport.PropertyType;
-import uk.ac.ebi.fgpt.webapp.v2.xml.samplegroupexport.QualifiedValueType;
-import uk.ac.ebi.fgpt.webapp.v2.xml.samplegroupexport.TermSourceREFType;
 
 @Controller
 @RequestMapping("/v2")
@@ -103,7 +103,7 @@ public class RestfulController {
     }
     
     @RequestMapping(value="/source/{source}/sample", method=RequestMethod.POST, produces="text/plain")
-    public @ResponseBody String createAccession(@PathVariable String source, @RequestParam String apikey, @RequestBody BioSampleType sample) 
+    public @ResponseBody String createAccession(@PathVariable String source, @RequestParam String apikey) 
         throws SQLException, ClassNotFoundException, ParseException, IOException {
         //ensure source is case insensitive
         source = source.toLowerCase();
@@ -117,11 +117,18 @@ public class RestfulController {
         }
         
         String newAccession = getAccessioner().singleAssaySample(source);
-             
-        if (sample != null) {
-            //a request body was provided, so save it somewhere
-            saveSampleData(handleBioSampleType(sample));
-        }
+        
+        return newAccession;
+    }
+    
+    @RequestMapping(value="/source/{source}/sample", method=RequestMethod.POST, produces="text/plain")
+    public @ResponseBody String createAccession(@PathVariable String source, @RequestParam String apikey, @RequestBody BioSampleType sample) 
+        throws SQLException, ClassNotFoundException, ParseException, IOException {
+        
+        String newAccession = createAccession(source, apikey);
+        
+        //a request body was provided, so save it somewhere
+        saveSampleData(handleBioSampleType(sample));
         
         return newAccession;
     }
@@ -217,7 +224,7 @@ public class RestfulController {
     }
     
     private void saveSampleData(SampleData sd) throws IOException {
-        //need to assign a submissino id
+        //need to assign a submission id
         if (sd.msi.submissionIdentifier == null) {
             int maxSubID = 0;
             Pattern pattern = Pattern.compile("^GSB-([0-9]+)$");
