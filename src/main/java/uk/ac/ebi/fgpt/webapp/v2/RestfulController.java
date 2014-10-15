@@ -102,7 +102,7 @@ public class RestfulController {
         return accessioner;
     }
     
-    @RequestMapping(value="/source/{source}/sample", method=RequestMethod.POST, produces="text/plain")
+    @RequestMapping(value="/source/{source}/sample", method=RequestMethod.POST, produces="text/plain", consumes="application/xml")
     public @ResponseBody String createAccession(@PathVariable String source, @RequestParam String apikey, @RequestBody BioSampleType sample) 
         throws SQLException, ClassNotFoundException, ParseException, IOException {
         //ensure source is case insensitive
@@ -123,8 +123,27 @@ public class RestfulController {
         
         return newAccession;
     }
+    
+    @RequestMapping(value="/source/{source}/sample", method=RequestMethod.POST, produces="text/plain")
+    public @ResponseBody String createAccession(@PathVariable String source, @RequestParam String apikey) 
+        throws SQLException, ClassNotFoundException, ParseException, IOException {
+        //ensure source is case insensitive
+        source = source.toLowerCase();
 
-    @RequestMapping(value="/source/{source}/sample/{sourceid}", method=RequestMethod.PUT, produces="text/plain")
+        String keyOwner = APIKey.getAPIKeyOwner(apikey);
+        //TODO handle wrong api keys better
+        
+        if (!APIKey.canKeyOwnerEditSource(keyOwner, source)) {
+            //TODO handle invalid key better
+            throw new IllegalArgumentException("apikey is not permitted for source");
+        }
+        
+        String newAccession = getAccessioner().singleAssaySample(source);
+        
+        return newAccession;
+    }
+
+    @RequestMapping(value="/source/{source}/sample/{sourceid}", method=RequestMethod.PUT, produces="text/plain", consumes="application/xml")
     public @ResponseBody String createAccession(@PathVariable String source, @PathVariable String sourceid, @RequestParam String apikey, @RequestBody BioSampleType sample) 
         throws SQLException, ClassNotFoundException, ParseException, IOException {
         
