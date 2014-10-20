@@ -195,25 +195,35 @@ public class RestfulController {
                 } else if (property.getClazz().equals("Material")) {
                     AbstractNodeAttributeOntology attr = new MaterialAttribute(value.getValue());
                     sample.addAttribute(attr); 
-                    handleTermSource(value.getTermSourceREF(), attr, sd);
+                    if (value.getTermSourceREF() != null) {
+                        handleTermSource(value.getTermSourceREF(), attr, sd);
+                    }
                 } else if (property.getClazz().equals("Sex")) {
                     AbstractNodeAttributeOntology attr = new SexAttribute(value.getValue());
                     sample.addAttribute(attr); 
-                    handleTermSource(value.getTermSourceREF(), attr, sd);
+                    if (value.getTermSourceREF() != null) {
+                        handleTermSource(value.getTermSourceREF(), attr, sd);
+                    }
                 } else if (property.getClazz().equals("Organism")) {
                     AbstractNodeAttributeOntology attr = new OrganismAttribute(value.getValue());
                     sample.addAttribute(attr); 
-                    handleTermSource(value.getTermSourceREF(), attr, sd);
+                    if (value.getTermSourceREF() != null) {
+                        handleTermSource(value.getTermSourceREF(), attr, sd);
+                    }
                 } else if (property.isCharacteristic()) {
                     CharacteristicAttribute attr = new CharacteristicAttribute(property.getClazz(), value.getValue());
                     sample.addAttribute(attr);
                     //TODO unit
-                    handleTermSource(value.getTermSourceREF(), attr, sd);
+                    if (value.getTermSourceREF() != null) {
+                        handleTermSource(value.getTermSourceREF(), attr, sd);
+                    }
                 } else if (property.isComment()) {
                     CommentAttribute attr = new CommentAttribute(property.getClazz(), value.getValue());
                     sample.addAttribute(attr);
                     //TODO unit
-                    handleTermSource(value.getTermSourceREF(), attr, sd);
+                    if (value.getTermSourceREF() != null) {
+                        handleTermSource(value.getTermSourceREF(), attr, sd);
+                    }
                 }
             }
         }
@@ -231,6 +241,10 @@ public class RestfulController {
     }
     
     private void handleTermSource(TermSourceREFType termSource, AbstractNodeAttributeOntology attr, SampleData sd) {
+        if (termSource == null) throw new IllegalArgumentException("termSource cannot be null");
+        if (attr == null) throw new IllegalArgumentException("termSource cannot be null");
+        if (sd == null) throw new IllegalArgumentException("termSource cannot be null");
+        
         if (termSource.getName() != null) {
             TermSource ts = new TermSource(termSource.getName(), termSource.getURI(), termSource.getVersion());
             attr.setTermSourceREF(sd.msi.getOrAddTermSource(ts));
