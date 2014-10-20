@@ -140,6 +140,8 @@ public class RestfulController {
     public @ResponseBody String createAccession(@PathVariable String source, @PathVariable String sourceid, @RequestParam String apikey, @RequestBody BioSampleType sample) 
         throws SQLException, ClassNotFoundException, ParseException, IOException {
         
+        log.info("Converting submission for storage");
+        
         SampleData sd = handleBioSampleType(sample);
         if (sd != null) {
             //a request body was provided, so save it somewhere
@@ -262,10 +264,10 @@ public class RestfulController {
                 if (!subdir.isDirectory()) {
                     continue;
                 } else {
-                    log.info("Looking at subid "+subdir.getName()+" with pattern "+pattern.pattern());
+                    log.trace("Looking at subid "+subdir.getName()+" with pattern "+pattern.pattern());
                     Matcher match = pattern.matcher(subdir.getName());
                     if (match.matches()) {
-                        log.info("Found match with "+match.groupCount()+" groups "+match.group(1));
+                        log.trace("Found match with "+match.groupCount()+" groups "+match.group(1));
                         Integer subid = new Integer(match.group(1));
                         if (subid > maxSubID) {
                             maxSubID = subid;
@@ -295,6 +297,7 @@ public class RestfulController {
             }
             writer = new SampleTabWriter(new BufferedWriter(new FileWriter(outFile)));
             writer.write(sd);
+            log.info("wrote to "+outFile);
         } finally {
             if (writer != null) {
                 try {
