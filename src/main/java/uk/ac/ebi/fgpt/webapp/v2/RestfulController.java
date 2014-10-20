@@ -287,7 +287,7 @@ public class RestfulController {
             sd.msi.submissionIdentifier = "GSB-"+maxSubID;
         }
 
-        File subdir = SampleTabUtils.getSubmissionDirFile(sd.msi.submissionIdentifier);
+        File subdir = new File(path.getAbsolutePath(), SampleTabUtils.getSubmissionDirFile(sd.msi.submissionIdentifier).toString());
         File outFile = new File(subdir, "sampletab.pre.txt");
 
         SampleTabWriter writer = null;
