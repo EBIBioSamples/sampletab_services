@@ -59,7 +59,7 @@ public class RestfulController {
     
     private File path;
     //2014-05-20T23:00:00+00:00
-    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.ENGLISH);
+    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssz", Locale.ENGLISH);
     
     private Logger log = LoggerFactory.getLogger(getClass());
     
