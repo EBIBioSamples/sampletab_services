@@ -124,7 +124,7 @@
 				<dependency>
 					<groupId>uk.ac.ebi.fgpt</groupId>
 					<artifactId>sampletab-converters</artifactId>
-					<version>1.0.14</version>
+					<version>1.0.16</version>
 					<exclusions>
 						<exclusion>
 							<artifactId>jackson-mapper-asl</artifactId>
@@ -171,7 +171,7 @@
 				<dependency>
 					<groupId>uk.ac.ebi.fgpt</groupId>
 					<artifactId>sampletab-converters</artifactId>
-					<version>1.0.14-SNAPSHOT</version>
+					<version>1.0.16-SNAPSHOT</version>
 					<exclusions>
 						<exclusion>
 							<artifactId>jackson-mapper-asl</artifactId>
