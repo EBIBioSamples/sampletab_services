@@ -59,7 +59,7 @@ public class RestfulController {
     
     private File path;
     //2014-05-20T23:00:00+00:00
-    DateFormat dateFormat = new SimpleDateFormat("YYYY-MM-ddTHH:mm:ssXXX", Locale.ENGLISH);
+    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-ddTHH:mm:ssXXX", Locale.ENGLISH);
     
     private Logger log = LoggerFactory.getLogger(getClass());
     
@@ -258,8 +258,8 @@ public class RestfulController {
         		sd.msi.submissionReleaseDate = releaseDate;
         	}
         }
-        //update date is taken to be when it is recieved by restful service
-        //even if it might have a different update date from upstream, recieving it is a newer update
+        //update date is taken to be when it is received by restful service
+        //even if it might have a different update date from upstream, receiving it is a newer update
         
         return sd;
     }
