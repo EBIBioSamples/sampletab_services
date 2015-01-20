@@ -6,13 +6,16 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,7 +37,6 @@ import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.MaterialAt
 import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.OrganismAttribute;
 import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.SexAttribute;
 import uk.ac.ebi.arrayexpress2.sampletab.renderer.SampleTabWriter;
-
 import uk.ac.ebi.fgpt.sampletab.Accessioner;
 import uk.ac.ebi.fgpt.sampletab.utils.SampleTabUtils;
 import uk.ac.ebi.fgpt.sampletab.utils.samplegroupexport.BioSampleType;
@@ -56,6 +58,8 @@ public class RestfulController {
     private Accessioner accessioner = null;
     
     private File path;
+    //2014-05-20T23:00:00+00:00
+    DateFormat dateFormat = new SimpleDateFormat("YYYY-MM-ddTHH:mm:ssXXX", Locale.ENGLISH);
     
     private Logger log = LoggerFactory.getLogger(getClass());
     
@@ -236,6 +240,27 @@ public class RestfulController {
             sample.addAttribute(new DatabaseAttribute(db.getName(), db.getID(), db.getURI()));
         } 
         
+        if (xmlSample.getId() != null && xmlSample.getId().matches("SAM(N|E|D)A?[0-9]*")) {
+        	sample.setSampleAccession(xmlSample.getId());
+        }
+        
+        if (xmlSample.getSubmissionReleaseDate() != null ){
+        	Date releaseDate = null;
+        	try {
+        		releaseDate = dateFormat.parse(xmlSample.getSubmissionReleaseDate());
+        	} catch (java.text.ParseException e) {
+        		//do nothing
+			}
+        	if (releaseDate != null) {
+        		sd.msi.submissionReleaseDate = releaseDate;
+        	}
+        }
+        //update date is taken to be when it is recieved by restful service
+        //even if it might have a different update date from upstream, recieving it is a newer update
+        	
+        
+        
+        
         //add the sample to the scd section after it has been fully constructed
         sd.scd.addNode(sample);
         
@@ -307,5 +332,14 @@ public class RestfulController {
                 }
             }
         }
+        
+        /*
+        
+        At this point, its been written to a temporary staging area by the owner of the executing tomcat.
+        
+        A cron script (running as the internal user) will pick it up and copy it to the real file area. That script
+        will trigger Conan for downstream processing.
+        
+         */
     }
 }
