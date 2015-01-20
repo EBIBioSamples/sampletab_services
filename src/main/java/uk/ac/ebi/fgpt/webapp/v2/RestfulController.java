@@ -244,6 +244,9 @@ public class RestfulController {
         	sample.setSampleAccession(xmlSample.getId());
         }
         
+        //add the sample to the scd section after it has been fully constructed
+        sd.scd.addNode(sample);
+        
         if (xmlSample.getSubmissionReleaseDate() != null ){
         	Date releaseDate = null;
         	try {
@@ -257,12 +260,6 @@ public class RestfulController {
         }
         //update date is taken to be when it is recieved by restful service
         //even if it might have a different update date from upstream, recieving it is a newer update
-        	
-        
-        
-        
-        //add the sample to the scd section after it has been fully constructed
-        sd.scd.addNode(sample);
         
         return sd;
     }
