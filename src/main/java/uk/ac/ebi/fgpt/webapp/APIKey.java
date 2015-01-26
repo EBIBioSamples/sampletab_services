@@ -22,7 +22,7 @@ public class APIKey {
         } else if (apikey != null && apikey.equals("Y1Y1PKRGPP7PWD82")) {
             return "BioSamples";
         } else if (apikey != null && apikey.equals("12E90E8NL4PH9BG7")){
-        	return "Hescreg";
+        	return "hESCreg";
         } else {
             //invalid API key, throw exception
             throw new IllegalArgumentException("Invalid API key ("+apikey+")");
