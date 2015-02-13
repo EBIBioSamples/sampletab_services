@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -24,9 +25,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.graph.Node;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.listener.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.sampletab.datamodel.SampleData;
+import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.GroupNode;
+import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.SampleNode;
+import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.DerivedFromAttribute;
 import uk.ac.ebi.arrayexpress2.sampletab.parser.SampleTabParser;
 import uk.ac.ebi.arrayexpress2.sampletab.renderer.SampleTabWriter;
 import uk.ac.ebi.fgpt.sampletab.AccessionerENA;
@@ -212,6 +217,53 @@ public class SubmissionController {
             subdir = new File(path.toString(), subdir.toString());
             File outFile = new File(subdir, "sampletab.pre.txt");
 
+            //replace implicit derived from with explicit derived from relationships
+            for (SampleNode sample : sampledata.scd.getNodes(SampleNode.class)) {
+                if (sample.getParentNodes().size() > 0) {
+                    for (Node parent : new HashSet<Node>(sample.getParentNodes())) {
+                        if (SampleNode.class.isInstance(parent)) {
+                            SampleNode parentsample = (SampleNode) parent;
+                            DerivedFromAttribute attr = new DerivedFromAttribute(parentsample.getSampleAccession());
+                            sample.addAttribute(attr);
+                            sample.removeParentNode(parentsample);
+                            parentsample.removeChildNode(sample);
+                        }
+                    }
+                }
+            }
+            
+            //create a new group and add all non-grouped samples to it
+            GroupNode othergroup = new GroupNode("Other Group");
+            for (SampleNode sample : sampledata.scd.getNodes(SampleNode.class)) {
+                // check there is not an existing group first...
+                boolean sampleInGroup = false;
+                //even if it has child nodes, both parent and child must be in a group
+                //this will lead to some weird looking row duplications, but since this is an internal 
+                //intermediate file it is not important
+                //Follow up: since implicit derived from relationships are made explicit above, 
+                //this is not an issue any more
+                for (Node n : sample.getChildNodes()) {
+                   if (GroupNode.class.isInstance(n)) {
+                        sampleInGroup = true;
+                    }
+                }
+                
+                if (!sampleInGroup){
+                    log.debug("Adding sample " + sample.getNodeName() + " to group " + othergroup.getNodeName());
+                    othergroup.addSample(sample);
+                }
+            }
+            //only add the new group if it has any samples
+            if (othergroup.getParentNodes().size() > 0){
+                sampledata.scd.addNode(othergroup);
+                log.info("Added Other group node");
+                // also need to accession the new node
+            }
+            
+            //correct errors
+            synchronized(corrector) {
+                corrector.correct(sampledata);
+            }
             
             //assign accessions to sampletab object
             synchronized(this) {
@@ -219,11 +271,6 @@ public class SubmissionController {
                 sampledata = accessioner.convert(sampledata);
                 accessioner.close();
                 accessioner = null;
-            }
-            
-            //correct errors
-            synchronized(corrector) {
-                corrector.correct(sampledata);
             }
             
             SampleTabWriter writer = null;
