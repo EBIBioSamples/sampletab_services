@@ -16,6 +16,8 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.sql.DataSource;
+
 import org.mged.magetab.error.ErrorItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +36,7 @@ import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.SampleNode;
 import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.DerivedFromAttribute;
 import uk.ac.ebi.arrayexpress2.sampletab.parser.SampleTabParser;
 import uk.ac.ebi.arrayexpress2.sampletab.renderer.SampleTabWriter;
-import uk.ac.ebi.fgpt.sampletab.AccessionerENA;
+import uk.ac.ebi.fgpt.sampletab.Accessioner;
 import uk.ac.ebi.fgpt.sampletab.Corrector;
 import uk.ac.ebi.fgpt.sampletab.utils.SampleTabUtils;
 import uk.ac.ebi.fgpt.webapp.APIKey;
@@ -52,7 +54,7 @@ public class SubmissionController {
     private Logger log = LoggerFactory.getLogger(getClass());
                 
     private final File path;
-    private AccessionerENA accessioner = null;
+    private Accessioner accessioner = null;
 
     private String host;
     private Integer port;
@@ -266,13 +268,16 @@ public class SubmissionController {
             }
             
             //assign accessions to sampletab object
-            synchronized(this) {
-                accessioner = new AccessionerENA(host, port, database, username, password);
-                sampledata = accessioner.convert(sampledata);
-                accessioner.close();
-                accessioner = null;
-            }
-            
+            DataSource ds = null;
+    		try {
+    			ds = Accessioner.getDataSource(host, 
+    			        port, database, username, password);
+    		} catch (ClassNotFoundException e) {
+    			throw new RuntimeException(e);
+    		}
+            accessioner = new Accessioner(ds);
+            sampledata = accessioner.convert(sampledata);
+        
             SampleTabWriter writer = null;
             try {
                 if (!subdir.exists() && !subdir.mkdirs()) {
