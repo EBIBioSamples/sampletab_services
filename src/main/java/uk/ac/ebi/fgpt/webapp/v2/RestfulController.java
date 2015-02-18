@@ -8,14 +8,20 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.sql.DataSource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -59,7 +65,6 @@ public class RestfulController {
     
     private File path;
     //2014-05-20T23:00:00+00:00
-    //2014-05-20T23:00:00+00:00
     DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'+00:00'", Locale.ENGLISH);
     
     private Logger log = LoggerFactory.getLogger(getClass());
@@ -102,7 +107,14 @@ public class RestfulController {
     
     protected Accessioner getAccessioner() {
         if (accessioner == null) {
-            accessioner = new Accessioner(host, port, database, username, password);
+            DataSource ds = null;
+    		try {
+    			ds = Accessioner.getDataSource(host, port, database, username, password);
+    		} catch (ClassNotFoundException e) {
+    			throw new RuntimeException(e);
+    		}
+            
+            accessioner = new Accessioner(ds);
         }
         return accessioner;
     }
@@ -110,33 +122,46 @@ public class RestfulController {
     
     
     @RequestMapping(value="/source/{source}/sample", method=RequestMethod.POST, produces="text/plain", consumes="application/xml")
-    public @ResponseBody String createAccession(@PathVariable String source, @RequestParam String apikey, @RequestBody BioSampleType sample) 
+    public ResponseEntity<String> createAccession(@PathVariable String source, @RequestParam String apikey, @RequestBody BioSampleType sample) 
         throws SQLException, ClassNotFoundException, ParseException, IOException {
-        String newAccession = createAccession(source, apikey);
+    	ResponseEntity<String> response = createAccession(source, apikey);
         
         //a request body was provided, so save it somewhere
-        saveSampleData(handleBioSampleType(sample));
+    	//after adding the accession
+    	SampleData sd = handleBioSampleType(sample);
+    	String accession = response.getBody();
+    	List<SampleNode> samples = new ArrayList<SampleNode>();
+		samples.addAll(sd.scd.getNodes(SampleNode.class));
+    	samples.get(0).setSampleAccession(accession);
+        saveSampleData(sd);
         
-        return newAccession;
+        return response;
     }
     
     @RequestMapping(value="/source/{source}/sample", method=RequestMethod.POST, produces="text/plain")
-    public @ResponseBody String createAccession(@PathVariable String source, @RequestParam String apikey) 
+    public ResponseEntity<String> createAccession(@PathVariable String source, @RequestParam String apikey) 
         throws SQLException, ClassNotFoundException, ParseException, IOException {
         //ensure source is case insensitive
         source = source.toLowerCase();
-
-        String keyOwner = APIKey.getAPIKeyOwner(apikey);
-        //TODO handle wrong api keys better
+    	String keyOwner = null;
+        try {
+        	keyOwner = APIKey.getAPIKeyOwner(apikey);
+        } catch (IllegalArgumentException e) {
+            ResponseEntity<String> response = new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
+            return response;
+        }
         
         if (!APIKey.canKeyOwnerEditSource(keyOwner, source)) {
-            //TODO handle invalid key better
-            throw new IllegalArgumentException("apikey is not permitted for source");
+            ResponseEntity<String> response = new ResponseEntity<String>("apikey is not permitted for source", HttpStatus.FORBIDDEN);
+            return response;
         }
         
         String newAccession = getAccessioner().singleAssaySample(source);
+        //TODO reject if already accessionned (POST is a one-time operation)
         
-        return newAccession;
+        ResponseEntity<String> response = new ResponseEntity<String>(newAccession, HttpStatus.ACCEPTED);        
+        
+        return response;
     }
     
     
