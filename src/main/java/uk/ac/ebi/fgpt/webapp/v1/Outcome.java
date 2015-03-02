@@ -70,6 +70,7 @@ public class Outcome {
                 sampleTabListList.add(lineList);
             }
             setSampletab(sampleTabListList);
+            stw.close();
         }
         return sampletab;
     }
