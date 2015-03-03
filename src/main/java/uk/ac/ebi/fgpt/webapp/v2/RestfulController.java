@@ -16,6 +16,9 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
 import javax.sql.DataSource;
 
 import org.slf4j.Logger;
@@ -43,6 +46,7 @@ import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.MaterialAt
 import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.OrganismAttribute;
 import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.SexAttribute;
 import uk.ac.ebi.arrayexpress2.sampletab.renderer.SampleTabWriter;
+import uk.ac.ebi.fg.core_model.resources.Resources;
 import uk.ac.ebi.fgpt.sampletab.Accessioner;
 import uk.ac.ebi.fgpt.sampletab.utils.SampleTabUtils;
 import uk.ac.ebi.fgpt.sampletab.utils.samplegroupexport.BioSampleType;
@@ -122,43 +126,41 @@ public class RestfulController {
     
     
     @RequestMapping(value="/source/{source}/sample", method=RequestMethod.POST, produces="text/plain", consumes="application/xml")
-    public ResponseEntity<String> createAccession(@PathVariable String source, @RequestParam String apikey, @RequestBody BioSampleType sample) 
-        throws SQLException, ClassNotFoundException, ParseException, IOException {
-    	ResponseEntity<String> response = createAccession(source, apikey);
+    public ResponseEntity<String> saveSourceSampleNew(@PathVariable String source, @RequestParam String apikey, @RequestBody BioSampleType sample) throws ParseException, IOException  {
+    	ResponseEntity<String> response = accessionSourceSampleNew(source, apikey);
         
-        //a request body was provided, so save it somewhere
-    	//after adding the accession
-    	SampleData sd = handleBioSampleType(sample);
-    	String accession = response.getBody();
-    	List<SampleNode> samples = new ArrayList<SampleNode>();
-		samples.addAll(sd.scd.getNodes(SampleNode.class));
-    	samples.get(0).setSampleAccession(accession);
-        saveSampleData(sd);
+    	if (response.getStatusCode() == HttpStatus.ACCEPTED) {
+	        //a request body was provided, so save it somewhere
+	    	//after adding the accession
+	    	SampleData sd = handleBioSampleType(sample);
+	    	String accession = response.getBody();
+	    	List<SampleNode> samples = new ArrayList<SampleNode>();
+			samples.addAll(sd.scd.getNodes(SampleNode.class));
+    		//TODO validate number of samples
+    		//TODO validate sample accession
+	    	samples.get(0).setSampleAccession(accession);
+	        saveSampleData(sd);
+    	}
         
         return response;
     }
     
     @RequestMapping(value="/source/{source}/sample", method=RequestMethod.POST, produces="text/plain")
-    public ResponseEntity<String> createAccession(@PathVariable String source, @RequestParam String apikey) 
-        throws SQLException, ClassNotFoundException, ParseException, IOException {
+    public ResponseEntity<String> accessionSourceSampleNew(@PathVariable String source, @RequestParam String apikey)  {
         //ensure source is case insensitive
         source = source.toLowerCase();
     	String keyOwner = null;
         try {
         	keyOwner = APIKey.getAPIKeyOwner(apikey);
         } catch (IllegalArgumentException e) {
-            ResponseEntity<String> response = new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
-            return response;
+            return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
         
         if (!APIKey.canKeyOwnerEditSource(keyOwner, source)) {
-            ResponseEntity<String> response = new ResponseEntity<String>("apikey is not permitted for source", HttpStatus.FORBIDDEN);
-            return response;
+            return new ResponseEntity<String>("apikey is not permitted for source", HttpStatus.FORBIDDEN);
         }
         
         String newAccession = getAccessioner().singleAssaySample(source);
-        //TODO reject if already accessionned (POST is a one-time operation)
-        
         ResponseEntity<String> response = new ResponseEntity<String>(newAccession, HttpStatus.ACCEPTED);        
         
         return response;
@@ -167,48 +169,130 @@ public class RestfulController {
     
 
     @RequestMapping(value="/source/{source}/sample/{sourceid}", method=RequestMethod.PUT, produces="text/plain", consumes="application/xml")
-    public @ResponseBody String createAccession(@PathVariable String source, @PathVariable String sourceid, @RequestParam String apikey, @RequestBody BioSampleType sample) 
-        throws SQLException, ClassNotFoundException, ParseException, IOException {
-        
-        log.info("Converting submission for storage");
-        
-        SampleData sd = handleBioSampleType(sample);
-        if (sd != null) {
-            //a request body was provided, so save it somewhere
-            saveSampleData(sd);
-        }
-        
-        return createAccession(source, sourceid, apikey);
-    }
+    public @ResponseBody ResponseEntity<String> saveUpdate(@PathVariable String source, @PathVariable String sourceid, @RequestParam String apikey, 
+    		@RequestBody BioSampleType sample) throws ParseException, IOException {
 
-    @RequestMapping(value="/source/{source}/sample/{sourceid}", method=RequestMethod.PUT, produces="text/plain")
-    public @ResponseBody String createAccession(@PathVariable String source, @PathVariable String sourceid, @RequestParam String apikey) 
-        throws SQLException, ClassNotFoundException, ParseException, IOException {
-        
         //ensure source is case insensitive
         source = source.toLowerCase();
-        
-        if (sourceid.matches("SAMEA[0-9]*")) {
-            //sourceid is a biosample accession already
-            //TODO check that this biosample accession belongs to this source
-            return sourceid;
-        } else {
-            //source id is not a biosample accession
-            String newAccession = getAccessioner().singleAssaySample(sourceid, source);
-
-            String keyOwner = APIKey.getAPIKeyOwner(apikey);
-            //TODO handle wrong api keys better
-            
-            if (!APIKey.canKeyOwnerEditSource(keyOwner, source)) {
-                //TODO handle invalid key better
-                throw new IllegalArgumentException("apikey is not permitted for source");
-            }
-            
-            return newAccession;
+    	String keyOwner = null;
+        try {
+        	keyOwner = APIKey.getAPIKeyOwner(apikey);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
+        
+        if (!APIKey.canKeyOwnerEditSource(keyOwner, source)) {
+            return new ResponseEntity<String>("That API key is not permitted for that source", HttpStatus.FORBIDDEN);
+        }
+                
+        //a request body was provided, so handle it
+    	//after adding the accession
+    	SampleData sd = handleBioSampleType(sample);
+    	ResponseEntity<String> response;
+    	
+    	if (sourceid.matches("SAM[NED]A?[0-9]+")) {
+    		//its a biosamples ID
+            response = new ResponseEntity<String>("using biosamples ids not implmented", HttpStatus.NOT_IMPLEMENTED);
+            //TODO implement
+            return response;
+    	} else {
+    		String accession = getAccessioner().retrieveAssaySample(sourceid, source);
+            //reject if not already accessioned (PUT is an update)
+    		if (accession == null) {
+    			return new ResponseEntity<String>("PUT must be an update, use POST for new submissions", HttpStatus.BAD_REQUEST);
+    		}
+        	List<SampleNode> samples = new ArrayList<SampleNode>();
+    		samples.addAll(sd.scd.getNodes(SampleNode.class));
+    		//TODO validate number of samples
+    		//TODO validate sample accession
+        	samples.get(0).setSampleAccession(accession);
+        	response = new ResponseEntity<String>(accession, HttpStatus.ACCEPTED);        
+    	}
+    	
+    	//save the output somewhere 
+        saveSampleData(sd);
+        
+        return response;
+        
     }
-    
-    
+
+
+    @RequestMapping(value="/source/{source}/sample/{sourceid}", method=RequestMethod.POST, produces="text/plain")
+    public @ResponseBody ResponseEntity<String> accessionSourceSample(@PathVariable String source, @PathVariable String sourceid, @RequestParam String apikey) {
+        //ensure source is case insensitive
+        source = source.toLowerCase();
+    	String keyOwner = null;
+        try {
+        	keyOwner = APIKey.getAPIKeyOwner(apikey);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
+        }
+        
+        if (!APIKey.canKeyOwnerEditSource(keyOwner, source)) {
+            return new ResponseEntity<String>("That API key is not permitted for that source", HttpStatus.FORBIDDEN);
+        }
+    	
+    	if (sourceid.matches("SAM[NED]A?[0-9]+")) {
+    		//its a biosamples ID
+    		return new ResponseEntity<String>("Do not request a new BioSamples accession for an existing BioSamples accession", HttpStatus.BAD_REQUEST);
+    	} else {
+    		String accession = getAccessioner().singleAssaySample(sourceid, source);
+    		return new ResponseEntity<String>(accession, HttpStatus.ACCEPTED);
+    	}
+    }
+
+
+    @RequestMapping(value="/source/{source}/sample/{sourceid}", method=RequestMethod.POST, produces="text/plain", consumes="application/xml")
+    public @ResponseBody ResponseEntity<String> saveSourceSample(@PathVariable String source, @PathVariable String sourceid, 
+    		@RequestParam String apikey, @RequestBody BioSampleType sample) throws ParseException, IOException {
+    	
+        //ensure source is case insensitive
+        source = source.toLowerCase();
+    	String keyOwner = null;
+        try {
+        	keyOwner = APIKey.getAPIKeyOwner(apikey);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
+        }
+        
+        if (!APIKey.canKeyOwnerEditSource(keyOwner, source)) {
+            return new ResponseEntity<String>("That API key is not permitted for that source", HttpStatus.FORBIDDEN);
+        }
+
+        //a request body was provided, so handle it
+    	//after adding the accession
+    	SampleData sd = handleBioSampleType(sample);
+    	ResponseEntity<String> response;
+    	
+    	if (sourceid.matches("SAM[NED]A?[0-9]+")) {
+    		//its a biosamples ID
+    		return new ResponseEntity<String>("Do not request a new BioSamples accession for an existing BioSamples accession", HttpStatus.BAD_REQUEST);
+    	}
+        //reject if already acessioned (POST is a one-time operation)
+    	if (getAccessioner().testAssaySample(sourceid, source)) {
+			return new ResponseEntity<String>("POST must be a new submission, use PUT for updates", HttpStatus.BAD_REQUEST);
+    	}
+		String accession = getAccessioner().singleAssaySample(sourceid, source);
+
+    	String submission = getSubmissionForAccession(accession);
+		if (submission != null) {
+			sd.msi.submissionIdentifier = submission;
+		}
+		
+		
+    	List<SampleNode> samples = new ArrayList<SampleNode>();
+		samples.addAll(sd.scd.getNodes(SampleNode.class));
+		//TODO validate number of samples
+		//TODO validate sample accession
+    	samples.get(0).setSampleAccession(accession);
+    	response = new ResponseEntity<String>(accession, HttpStatus.ACCEPTED);
+    	
+    	
+    	//save the output somewhere 
+        saveSampleData(sd);
+        
+        return response;
+    }
     
     
     private SampleData handleBioSampleType(BioSampleType xmlSample) throws ParseException {
@@ -364,5 +448,17 @@ public class RestfulController {
         will trigger Conan for downstream processing.
         
          */
+    }
+    
+    public String getSubmissionForAccession(String acc) {
+        EntityManager em = Resources.getInstance().getEntityManagerFactory().createEntityManager();
+        TypedQuery<String> q = em.createQuery("SELECT msi.acc FROM BioSample bs JOIN bs.MSIRefs AS MSI WHERE bs.acc = ?", String.class);
+        q.setParameter(1, acc);       
+        try {
+        	return q.getSingleResult();
+        } catch (NoResultException e) {
+        	//there was no match, return null
+        	return null;
+        }
     }
 }
