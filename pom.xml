@@ -51,10 +51,7 @@
 		</dependency>
 		
 		<!-- for general goodness -->
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-		</dependency>
+		<!-- guava in biosd_common -->
 
 	</dependencies>
 
