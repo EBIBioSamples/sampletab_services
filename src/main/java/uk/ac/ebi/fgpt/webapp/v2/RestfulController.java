@@ -189,6 +189,7 @@ public class RestfulController {
     	//after adding the accession
     	SampleData sd = handleBioSampleType(sample);
     	ResponseEntity<String> response;
+    	String accession = null;
     	
     	if (sourceid.matches("SAM[NED]A?[0-9]+")) {
     		//its a biosamples ID
@@ -196,7 +197,7 @@ public class RestfulController {
             //TODO implement
             return response;
     	} else {
-    		String accession = getAccessioner().retrieveAssaySample(sourceid, source);
+    		accession = getAccessioner().retrieveAssaySample(sourceid, source);
             //reject if not already accessioned (PUT is an update)
     		if (accession == null) {
     			return new ResponseEntity<String>("PUT must be an update, use POST for new submissions", HttpStatus.BAD_REQUEST);
@@ -207,6 +208,13 @@ public class RestfulController {
     		//TODO validate sample accession
         	samples.get(0).setSampleAccession(accession);
         	response = new ResponseEntity<String>(accession, HttpStatus.ACCEPTED);        
+    	}
+    	
+    	if (accession != null) {
+	    	String submission = getSubmissionForSampleAccession(accession);
+			if (submission != null) {
+				sd.msi.submissionIdentifier = submission;
+			}
     	}
     	
     	//save the output somewhere 
@@ -274,7 +282,8 @@ public class RestfulController {
     	}
 		String accession = getAccessioner().singleAssaySample(sourceid, source);
 
-    	String submission = getSubmissionForAccession(accession);
+		//because this is in POST, it must be a new submission, therefore it won't have an existing submission
+    	String submission = getSubmissionForSampleAccession(accession);
 		if (submission != null) {
 			sd.msi.submissionIdentifier = submission;
 		}
@@ -450,7 +459,7 @@ public class RestfulController {
          */
     }
     
-    public String getSubmissionForAccession(String acc) {
+    public String getSubmissionForSampleAccession(String acc) {
         EntityManager em = Resources.getInstance().getEntityManagerFactory().createEntityManager();
         TypedQuery<String> q = em.createQuery("SELECT msi.acc FROM BioSample bs JOIN bs.MSIRefs AS MSI WHERE bs.acc = ?", String.class);
         q.setParameter(1, acc);       
