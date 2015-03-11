@@ -127,6 +127,9 @@ public class RestfulController {
     
     @RequestMapping(value="/source/{source}/sample", method=RequestMethod.POST, produces="text/plain", consumes="application/xml")
     public ResponseEntity<String> saveSourceSampleNew(@PathVariable String source, @RequestParam String apikey, @RequestBody BioSampleType sample) throws ParseException, IOException  {
+        //ensure source is case insensitive
+        source = source.toLowerCase();
+        
     	ResponseEntity<String> response = accessionSourceSampleNew(source, apikey);
         
     	if (response.getStatusCode() == HttpStatus.ACCEPTED) {
@@ -149,6 +152,7 @@ public class RestfulController {
     public ResponseEntity<String> accessionSourceSampleNew(@PathVariable String source, @RequestParam String apikey)  {
         //ensure source is case insensitive
         source = source.toLowerCase();
+        
     	String keyOwner = null;
         try {
         	keyOwner = APIKey.getAPIKeyOwner(apikey);
@@ -171,9 +175,9 @@ public class RestfulController {
     @RequestMapping(value="/source/{source}/sample/{sourceid}", method=RequestMethod.PUT, produces="text/plain", consumes="application/xml")
     public @ResponseBody ResponseEntity<String> saveUpdate(@PathVariable String source, @PathVariable String sourceid, @RequestParam String apikey, 
     		@RequestBody BioSampleType sample) throws ParseException, IOException {
-
         //ensure source is case insensitive
         source = source.toLowerCase();
+        
     	String keyOwner = null;
         try {
         	keyOwner = APIKey.getAPIKeyOwner(apikey);
@@ -253,9 +257,10 @@ public class RestfulController {
     @RequestMapping(value="/source/{source}/sample/{sourceid}", method=RequestMethod.POST, produces="text/plain", consumes="application/xml")
     public @ResponseBody ResponseEntity<String> saveSourceSample(@PathVariable String source, @PathVariable String sourceid, 
     		@RequestParam String apikey, @RequestBody BioSampleType sample) throws ParseException, IOException {
-    	
         //ensure source is case insensitive
         source = source.toLowerCase();
+        
+        
     	String keyOwner = null;
         try {
         	keyOwner = APIKey.getAPIKeyOwner(apikey);
