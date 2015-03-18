@@ -192,25 +192,33 @@ public class RestfulController {
         //a request body was provided, so handle it
     	//after adding the accession
     	SampleData sd = handleBioSampleType(sample);
+		SampleNode sampleNode = sd.scd.getNodes(SampleNode.class).iterator().next();
     	ResponseEntity<String> response;
     	String accession = null;
     	
+    	//validate number of samples is not needed, since type specifys one BioSample xml element
+    	
+    	
     	if (sourceid.matches("SAM[NED]A?[0-9]+")) {
     		//its a biosamples ID
-            response = new ResponseEntity<String>("using biosamples ids not implmented", HttpStatus.NOT_IMPLEMENTED);
-            //TODO implement
-            return response;
+    		//check content accession matches address accession
+    		if (sampleNode.getSampleAccession() == null || !sampleNode.getSampleAccession().equals(sourceid)) {
+    			return new ResponseEntity<String>("Sample Accession in XML must match sourceid in URL", HttpStatus.CONFLICT);
+    		}
+    		//accept this submission
+        	response = new ResponseEntity<String>(accession, HttpStatus.ACCEPTED);
     	} else {
+    		//its not a biosamples id, but a source id
     		accession = getAccessioner().retrieveAssaySample(sourceid, source);
             //reject if not already accessioned (PUT is an update)
     		if (accession == null) {
     			return new ResponseEntity<String>("PUT must be an update, use POST for new submissions", HttpStatus.BAD_REQUEST);
     		}
-        	List<SampleNode> samples = new ArrayList<SampleNode>();
-    		samples.addAll(sd.scd.getNodes(SampleNode.class));
-    		//TODO validate number of samples
-    		//TODO validate sample accession
-        	samples.get(0).setSampleAccession(accession);
+    		//check content accession matches address accession
+    		if (sampleNode.getSampleAccession() != null && !sampleNode.getSampleAccession().equals(sourceid)) {
+    			return new ResponseEntity<String>("Sample accession in XML must match previous accession", HttpStatus.CONFLICT);
+    		}
+    		//accept this submission
         	response = new ResponseEntity<String>(accession, HttpStatus.ACCEPTED);        
     	}
     	
@@ -228,6 +236,29 @@ public class RestfulController {
         
     }
 
+    @RequestMapping(value="/source/{source}/sample/{sourceid}/submission", method=RequestMethod.GET, produces="text/plain")
+    public @ResponseBody ResponseEntity<String> getSubmissionOfSample(@PathVariable String source, @PathVariable String sourceid, @RequestParam String apikey) {
+    	//ensure source is case insensitive
+        source = source.toLowerCase();
+    	String keyOwner = null;
+        try {
+        	keyOwner = APIKey.getAPIKeyOwner(apikey);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
+        }
+        
+        if (!APIKey.canKeyOwnerEditSource(keyOwner, source)) {
+            return new ResponseEntity<String>("That API key is not permitted for that source", HttpStatus.FORBIDDEN);
+        }
+
+    	if (sourceid.matches("SAM[NED]A?[0-9]+")) {
+    		//its a biosamples ID
+	    	String submission = getSubmissionForSampleAccession(sourceid);
+			return new ResponseEntity<String>(submission, HttpStatus.ACCEPTED);
+    	} else {
+            return new ResponseEntity<String>("Only implmemented for BioSample accessions", HttpStatus.FORBIDDEN);
+    	}
+    }
 
     @RequestMapping(value="/source/{source}/sample/{sourceid}", method=RequestMethod.POST, produces="text/plain")
     public @ResponseBody ResponseEntity<String> accessionSourceSample(@PathVariable String source, @PathVariable String sourceid, @RequestParam String apikey) {
