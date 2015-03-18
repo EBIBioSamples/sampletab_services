@@ -107,6 +107,7 @@
 				<resources>
 					<resource>
 						<directory>src/main/resources-production</directory>
+						<filtering>true</filtering>
 					</resource>
 				</resources>
 			</build>
@@ -159,6 +160,7 @@
 				<resources>
 					<resource>
 						<directory>src/main/resources-test</directory>
+						<filtering>true</filtering>
 					</resource>
 				</resources>
 			</build>
@@ -211,6 +213,7 @@
 				<resources>
 					<resource>
 						<directory>src/main/resources-development</directory>
+						<filtering>true</filtering>
 					</resource>
 				</resources>
 			</build>
@@ -276,5 +279,11 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
 	</build>
 </project>
