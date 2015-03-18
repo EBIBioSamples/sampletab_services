@@ -497,8 +497,7 @@ public class RestfulController {
     
     public String getSubmissionForSampleAccession(String acc) {
         EntityManager em = Resources.getInstance().getEntityManagerFactory().createEntityManager();
-        TypedQuery<String> q = em.createQuery("SELECT msi.acc FROM BioSample bs JOIN bs.MSIRefs AS MSI WHERE bs.acc = ?", String.class);
-        q.setParameter(1, acc);       
+        TypedQuery<String> q = em.createQuery("SELECT msi.acc FROM BioSample bs JOIN bs.MSIRefs AS MSI WHERE bs.acc = '"+acc+"'", String.class);
         try {
         	return q.getSingleResult();
         } catch (NoResultException e) {
