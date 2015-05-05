@@ -23,6 +23,8 @@ public class APIKey {
             return "BioSamples";
         } else if (apikey != null && apikey.equals("12E90E8NL4PH9BG7")){
         	return "hESCreg";
+        } else if (apikey != null && apikey.equals("WNTGPBNW0NGC3876")){
+        	return "EBiSC IMS";
         } else {
             //invalid API key, throw exception
             throw new IllegalArgumentException("Invalid API key ("+apikey+")");
