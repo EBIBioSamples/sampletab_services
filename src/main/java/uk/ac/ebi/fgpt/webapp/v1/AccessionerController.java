@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 
 import org.mged.magetab.error.ErrorItem;
 import org.slf4j.Logger;
@@ -27,7 +28,8 @@ import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.arrayexpress2.magetab.listener.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.sampletab.datamodel.SampleData;
 import uk.ac.ebi.arrayexpress2.sampletab.parser.SampleTabParser;
-import uk.ac.ebi.fgpt.sampletab.AccessionerENA;
+import uk.ac.ebi.fgpt.sampletab.Accessioner;
+import uk.ac.ebi.fgpt.sampletab.CorrectorAddAttr;
 
 /**
  * A spring controller that returns an accessioned version of a POSTed SampleTab
@@ -44,7 +46,7 @@ public class AccessionerController {
     private String database;
     private String username;
     private String password;
-    private AccessionerENA accessioner;
+    private Accessioner accessioner;
     
     private Logger log = LoggerFactory.getLogger(getClass());
     
@@ -185,7 +187,14 @@ public class AccessionerController {
             }
             
             //assign accessions to sampletab object
-            accessioner = getAccessioner();
+            DataSource ds = null;
+    		try {
+    			ds = Accessioner.getDataSource(host, 
+    			        port, database, username, password);
+    		} catch (ClassNotFoundException e) {
+    			throw new RuntimeException(e);
+    		}
+            accessioner = new Accessioner(ds);
             sampledata = accessioner.convert(sampledata);
             
             //return the accessioned file, and any generated errors            
@@ -206,15 +215,5 @@ public class AccessionerController {
             return new Outcome(null, errors);
         } 
     }
-    
-    
-    private AccessionerENA getAccessioner() throws ClassNotFoundException, SQLException{
-        if (accessioner == null){
-            accessioner = new AccessionerENA(host, port, database, username, password);
-        }
-        return accessioner;
-    }
-    
-    
     
 }

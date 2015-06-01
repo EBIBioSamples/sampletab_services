@@ -7,6 +7,12 @@
 	<version>1.0-SNAPSHOT</version>
 	<packaging>war</packaging>
 	
+	<parent>
+		<groupId>uk.ac.ebi.fg.biosd</groupId>
+		<artifactId>biosd_common</artifactId>
+		<version>1.2.1-SNAPSHOT</version>
+	</parent>
+	
 	<name>SampleTab Web Accessioner</name>
 	<url>http://maven.apache.org</url>
 
@@ -15,7 +21,7 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
-			<version>3.2.0.RELEASE</version>
+			<version>${spring.version}</version>
 		</dependency>
 
 		<!-- jackson json mapping library, describes mappings from java to json 
@@ -35,18 +41,7 @@
 		</dependency>
 
 		<!-- logging dependencies -->
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.6.6</version>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.14</version>
-			<scope>runtime</scope>
-		</dependency>
+		<!-- inherited from sampletab_converters -->
 
 		<!-- for file uploading -->
 		<dependency>
@@ -56,11 +51,7 @@
 		</dependency>
 		
 		<!-- for general goodness -->
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>11.0.2</version>
-		</dependency>
+		<!-- guava in biosd_common -->
 
 	</dependencies>
 
@@ -116,6 +107,7 @@
 				<resources>
 					<resource>
 						<directory>src/main/resources-production</directory>
+						<filtering>true</filtering>
 					</resource>
 				</resources>
 			</build>
@@ -150,6 +142,11 @@
 					<artifactId>fluxion-spi</artifactId>
 					<version>1.0-alpha-3</version>
 				</dependency>
+				<dependency>
+					<groupId>uk.ac.ebi.fg</groupId>
+					<artifactId>biosd_model</artifactId>
+					<version>3.0</version>
+				</dependency>
 			</dependencies>
 		</profile>
 
@@ -163,6 +160,7 @@
 				<resources>
 					<resource>
 						<directory>src/main/resources-test</directory>
+						<filtering>true</filtering>
 					</resource>
 				</resources>
 			</build>
@@ -196,6 +194,11 @@
 					<groupId>net.sourceforge.fluxion</groupId>
 					<artifactId>fluxion-spi</artifactId>
 					<version>1.0-alpha-3</version>
+				</dependency>
+				<dependency>
+					<groupId>uk.ac.ebi.fg</groupId>
+					<artifactId>biosd_model</artifactId>
+					<version>3.0-SNAPSHOT</version>
 				</dependency>
 			</dependencies>
 		</profile>
@@ -210,6 +213,7 @@
 				<resources>
 					<resource>
 						<directory>src/main/resources-development</directory>
+						<filtering>true</filtering>
 					</resource>
 				</resources>
 			</build>
@@ -243,6 +247,11 @@
 					<groupId>net.sourceforge.fluxion</groupId>
 					<artifactId>fluxion-spi</artifactId>
 					<version>1.0-alpha-3</version>
+				</dependency>
+				<dependency>
+					<groupId>uk.ac.ebi.fg</groupId>
+					<artifactId>biosd_model</artifactId>
+					<version>3.0-SNAPSHOT</version>
 				</dependency>
 			</dependencies>
 		</profile>
@@ -270,5 +279,11 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
 	</build>
 </project>
