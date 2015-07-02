@@ -46,7 +46,7 @@ public class AccessionerController {
     private String database;
     private String username;
     private String password;
-    private Accessioner accessioner;
+    private final Accessioner accessioner;
     
     private Logger log = LoggerFactory.getLogger(getClass());
     
@@ -58,6 +58,7 @@ public class AccessionerController {
             properties.load(is);
         } catch (IOException e) {
             log.error("Unable to read resource properties", e);
+            accessioner = null;
             return;
         }
         this.host = properties.getProperty("hostname");
@@ -65,6 +66,16 @@ public class AccessionerController {
         this.database = properties.getProperty("database");
         this.username = properties.getProperty("username");
         this.password = properties.getProperty("password");
+        
+        //setup the accesioner
+        DataSource ds = null;
+		try {
+			ds = Accessioner.getDataSource(host, 
+			        port, database, username, password);
+		} catch (ClassNotFoundException e) {
+			log.error("Unable to find driver class", e);
+		}
+        accessioner = new Accessioner(ds);
     }
     
     /*
@@ -100,59 +111,7 @@ public class AccessionerController {
         }
         
     }
-    
-    /*
-
-    public class RESTAccession {
         
-        private String sampleName = null;
-        private String submissionIdenitifier = null;
-        private String sampleAccession = null;
-        
-        public RESTAccession() {
-            
-        }
-
-        public String getSampleName() {
-            return sampleName;
-        }
-
-        public void setSampleName(String sampleName) {
-            this.sampleName = sampleName;
-        }
-
-        public String getSubmissionIdenitifier() {
-            return submissionIdenitifier;
-        }
-
-        public void setSubmissionIdenitifier(String submissionIdenitifier) {
-            this.submissionIdenitifier = submissionIdenitifier;
-        }
-
-        public String getSampleAccession() {
-            return sampleAccession;
-        }
-
-        public void setSampleAccession(String sampleAccession) {
-            this.sampleAccession = sampleAccession;
-        }
-    }
-    
-    @RequestMapping(value = "/v1/rest/ac", method = RequestMethod.GET)
-    public @ResponseBody RESTAccession doAccessionREST(String sampleName, String submissionIdenitifier) {
-        RESTAccession result = new RESTAccession();
-        result.setSampleName(sampleName);
-        result.setSubmissionIdenitifier(submissionIdenitifier);
-        
-        //assign accessions to sampletab object
-        accessioner = getAccessioner();
-        String sampleAccession = accessioner.
-        result.setSampleAccession(sampleAccession);
-        return result;
-    }
-    
-    */
-    
     //old URL mapping for backwards compatability
     @RequestMapping(value = "/jsac", method = RequestMethod.POST) 
     public @ResponseBody Outcome doAccessionOld(@RequestBody SampleTabRequest sampletab) {
@@ -185,16 +144,8 @@ public class AccessionerController {
             if (sampledata.msi.submissionIdentifier.equals("GCG-HipSci")) {
                 sampledata.msi.submissionIdentifier = "GSB-3";
             }
-            
+
             //assign accessions to sampletab object
-            DataSource ds = null;
-    		try {
-    			ds = Accessioner.getDataSource(host, 
-    			        port, database, username, password);
-    		} catch (ClassNotFoundException e) {
-    			throw new RuntimeException(e);
-    		}
-            accessioner = new Accessioner(ds);
             sampledata = accessioner.convert(sampledata);
             
             //return the accessioned file, and any generated errors            
