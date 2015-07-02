@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.sql.SQLException;
+import java.sql.SQLRecoverableException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,6 +19,8 @@ import javax.sql.DataSource;
 import org.mged.magetab.error.ErrorItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,7 +49,7 @@ public class AccessionerController {
     private String database;
     private String username;
     private String password;
-    private final Accessioner accessioner;
+    private Accessioner accessioner;
     
     private Logger log = LoggerFactory.getLogger(getClass());
     
@@ -66,7 +69,7 @@ public class AccessionerController {
         this.database = properties.getProperty("database");
         this.username = properties.getProperty("username");
         this.password = properties.getProperty("password");
-        
+
         //setup the accesioner
         DataSource ds = null;
 		try {
@@ -131,6 +134,8 @@ public class AccessionerController {
             }
         });
          
+        
+        Outcome outcome = null;
         try {
             //convert json object to string
             String singleString = sampletab.asSingleString();
@@ -149,12 +154,38 @@ public class AccessionerController {
             sampledata = accessioner.convert(sampledata);
             
             //return the accessioned file, and any generated errors            
-            return new Outcome(sampledata, errorItems);
+            outcome = new Outcome(sampledata, errorItems);
             
         } catch (ParseException e) {
             //catch parsing errors for malformed submissions
             log.error(e.getMessage(), e);
-            return new Outcome(null, e.getErrorItems());
+            outcome = new Outcome(null, e.getErrorItems());
+        } catch (DataAccessException e) {
+        	//if its a recoverable SQL exception, reconnect to the database and retry
+        	if (SQLRecoverableException.class.isInstance(e.getCause())) {
+        		log.info("Attemtying recovery...");
+                DataSource ds = null;
+        		try {
+        			ds = Accessioner.getDataSource(host, 
+        			        port, database, username, password);
+        		} catch (ClassNotFoundException e2) {
+        			log.error("Unable to find driver class", e);
+        		}
+        		synchronized(accessioner) {
+        			accessioner.setDataSource(ds);
+        		}
+        		outcome = doAccession(sampletab);
+        	} else {
+                //general catch all for other errors, e.g SQL
+                log.error(e.getMessage(), e);
+                List<Map<String,String>> errors = new ArrayList<Map<String,String>>();
+                Map<String, String> error = new HashMap<String, String>();
+                error.put("type", e.getClass().getName());
+                error.put("message", e.getLocalizedMessage());
+                errors.add(error);
+                outcome = new Outcome(null, errors);
+        	}
+        	
         } catch (Exception e) {
             //general catch all for other errors, e.g SQL
             log.error(e.getMessage(), e);
@@ -163,8 +194,9 @@ public class AccessionerController {
             error.put("type", e.getClass().getName());
             error.put("message", e.getLocalizedMessage());
             errors.add(error);
-            return new Outcome(null, errors);
+            outcome = new Outcome(null, errors);
         } 
+        return outcome;
     }
     
 }
