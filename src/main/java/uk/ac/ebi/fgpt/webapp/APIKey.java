@@ -21,9 +21,11 @@ public class APIKey {
             return "ArrayExpress";
         } else if (apikey != null && apikey.equals("Y1Y1PKRGPP7PWD82")) {
             return "BioSamples";
-        } else if (apikey != null && apikey.equals("12E90E8NL4PH9BG7")){
+        } else if (apikey != null && apikey.equals("12E90E8NL4PH9BG7")) {
         	return "hESCreg";
-        } else if (apikey != null && apikey.equals("WNTGPBNW0NGC3876")){
+        } else if (apikey != null && apikey.equals("WNTGPBNW0NGC3876")) {
+        	return "EBiSCIMS";
+        } else if (apikey != null && apikey.equals("R1HKT5T756W92EM5")) {
         	return "EBiSCIMS";
         } else {
             //invalid API key, throw exception
@@ -33,10 +35,10 @@ public class APIKey {
     
     public static boolean canKeyOwnerEditSource(String keyOwner, String source) {
         if (keyOwner == null || keyOwner.trim().length() == 0) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("keyOnwer must a sensible string");
         }
         if (source == null || source.trim().length() == 0) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("source must be a sensible string");
         }
         
         if ("BioSamples".toLowerCase().equals(keyOwner.toLowerCase())) {
