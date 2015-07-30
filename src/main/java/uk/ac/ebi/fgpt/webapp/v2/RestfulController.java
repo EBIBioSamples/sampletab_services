@@ -16,6 +16,9 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
@@ -59,12 +62,6 @@ import uk.ac.ebi.fgpt.webapp.APIKey;
 @Controller
 @RequestMapping("/v2")
 public class RestfulController {
-    
-    private final String host;
-    private final int port;
-    private final String database;
-    private final String username;
-    private final String password;
     private Accessioner accessioner = null;
     
     private File path;
@@ -73,27 +70,8 @@ public class RestfulController {
     
     private Logger log = LoggerFactory.getLogger(getClass());
     
-    public RestfulController() {
+    public RestfulController() throws NamingException {
         Properties properties = new Properties();
-        try {
-            InputStream is = getClass().getResourceAsStream("/oracle.properties");
-            properties.load(is);
-        } catch (IOException e) {
-            log.error("Unable to read resource oracle.properties", e);
-            this.host = null;
-            this.port = -1;
-            this.database = null;
-            this.username = null;
-            this.password = null;
-            return;
-        }
-        this.host = properties.getProperty("hostname");
-        this.port = new Integer(properties.getProperty("port"));
-        this.database = properties.getProperty("database");
-        this.username = properties.getProperty("username");
-        this.password = properties.getProperty("password");
-        
-
         try {
             InputStream is = getClass().getResourceAsStream("/sampletab.properties");
             properties.load(is);
@@ -107,19 +85,18 @@ public class RestfulController {
             //TODO throw error
             log.error("Submission path "+path+" does not exist");
         }
+        
+
+        //See AccessionerController for more information
+		// Obtain our environment naming context
+		Context initCtx = new InitialContext();
+		Context envCtx = (Context) initCtx.lookup("java:comp/env");
+		DataSource ds = (DataSource) envCtx.lookup("jdbc/accessionDB");
+        accessioner = new Accessioner(ds);
+        
     }
     
     protected Accessioner getAccessioner() {
-        if (accessioner == null) {
-            DataSource ds = null;
-    		try {
-    			ds = Accessioner.getDataSource(host, port, database, username, password);
-    		} catch (ClassNotFoundException e) {
-    			throw new RuntimeException(e);
-    		}
-            
-            accessioner = new Accessioner(ds);
-        }
         return accessioner;
     }
     
@@ -321,7 +298,7 @@ public class RestfulController {
 		//because this is in POST, it must be a new submission, therefore it won't have an existing submission
     	String submission = getSubmissionForSampleAccession(accession);
 		if (submission != null) {
-			sd.msi.submissionIdentifier = submission;
+			return new ResponseEntity<String>("POST must be a new submission, use PUT for updates", HttpStatus.BAD_REQUEST);
 		}
 		
 		
@@ -463,10 +440,13 @@ public class RestfulController {
             
             sd.msi.submissionIdentifier = "GSB-"+maxSubID;
         }
+        
 
         File subdir = new File(path.getAbsolutePath(), SampleTabUtils.getSubmissionDirFile(sd.msi.submissionIdentifier).toString());
         File outFile = new File(subdir, "sampletab.pre.txt");
 
+        //TODO check this is a sensible submission if overwriting
+        
         SampleTabWriter writer = null;
         try {
             if (!subdir.exists() && !subdir.mkdirs()) {
@@ -495,7 +475,12 @@ public class RestfulController {
          */
     }
     
-    public String getSubmissionForSampleAccession(String acc) {
+    /**
+     * This is the method that uses Hibernate to connect to the database. 
+     * @param acc
+     * @return
+     */
+    public String getSubmissionForSampleAccession(String acc) {        
         EntityManager em = Resources.getInstance().getEntityManagerFactory().createEntityManager();
         TypedQuery<String> q = em.createQuery("SELECT msi.acc FROM BioSample bs JOIN bs.MSIs AS msi WHERE bs.acc = '"+acc+"'", String.class);
         try {

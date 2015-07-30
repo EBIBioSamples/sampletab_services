@@ -16,6 +16,9 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 import org.mged.magetab.error.ErrorItem;
@@ -55,17 +58,11 @@ public class SubmissionController {
                 
     private final File path;
     private Accessioner accessioner = null;
-
-    private String host;
-    private Integer port;
-    private String database;
-    private String username;
-    private String password;
-    
+   
     
     private Corrector corrector;
     
-    public SubmissionController() {
+    public SubmissionController() throws NamingException {
         Properties properties = new Properties();
         try {
             InputStream is = SubmissionController.class.getResourceAsStream("/sampletab.properties");
@@ -81,21 +78,15 @@ public class SubmissionController {
             log.error("Submission path "+path+" does not exist");
         }
         
-        properties = new Properties();
-        try {
-            InputStream is = AccessionerController.class.getResourceAsStream("/oracle.properties");
-            properties.load(is);
-        } catch (IOException e) {
-            log.error("Unable to read resource properties", e);
-            return;
-        }
-        
-        host = properties.getProperty("hostname");
-        port = new Integer(properties.getProperty("port"));
-        database = properties.getProperty("database");
-        username = properties.getProperty("username");
-        password = properties.getProperty("password");
-                
+        //See AccessionerController for more information
+		// Obtain our environment naming context
+		Context initCtx = new InitialContext();
+		Context envCtx = (Context) initCtx.lookup("java:comp/env");
+		DataSource ds = (DataSource) envCtx.lookup("jdbc/accessionDB");
+		
+		//create the datasource
+        accessioner = new Accessioner(ds);
+                        
         corrector = new Corrector();
     }
     
@@ -268,14 +259,6 @@ public class SubmissionController {
             }
             
             //assign accessions to sampletab object
-            DataSource ds = null;
-    		try {
-    			ds = Accessioner.getDataSource(host, 
-    			        port, database, username, password);
-    		} catch (ClassNotFoundException e) {
-    			throw new RuntimeException(e);
-    		}
-            accessioner = new Accessioner(ds);
             sampledata = accessioner.convert(sampledata);
         
             SampleTabWriter writer = null;

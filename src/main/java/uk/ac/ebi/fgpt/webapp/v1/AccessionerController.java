@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.sql.SQLException;
 import java.sql.SQLRecoverableException;
@@ -156,47 +157,17 @@ public class AccessionerController {
             //catch parsing errors for malformed submissions
             log.error(e.getMessage(), e);
             outcome = new Outcome(null, e.getErrorItems());
-        } catch (DataAccessException e) {
-        	//if its a recoverable SQL exception, reconnect to the database and retry
-        	if (SQLRecoverableException.class.isInstance(e.getCause())) {
-        		log.info("Attemtying recovery...");
-        		DataSource ds = null;
-				try {
-					Context initCtx = new InitialContext();
-	        		Context envCtx = (Context) initCtx.lookup("java:comp/env");
-	        		ds = (DataSource) envCtx.lookup("jdbc/accessionDB");
-				} catch (NamingException e1) {
-	                log.error("Original error: "+e.getMessage(), e);
-	                log.error("Retry error: "+e1.getMessage(), e1);
-	                List<Map<String,String>> errors = new ArrayList<Map<String,String>>();
-	                Map<String, String> error;
-	                error = new HashMap<String, String>();
-	                error.put("type", e.getClass().getName());
-	                error.put("message", e.getLocalizedMessage());
-	                errors.add(error);
-	                error = new HashMap<String, String>();
-	                error.put("type", e1.getClass().getName());
-	                error.put("message", e1.getLocalizedMessage());
-	                errors.add(error);
-	                outcome = new Outcome(null, errors);
-				}
-				if (ds != null) {
-	        		synchronized(accessioner) {
-	        			accessioner.setDataSource(ds);
-	        		}
-	        		outcome = doAccession(sampletab);
-				}
-        	} else {
-                //general catch all for other errors, e.g SQL
-                log.error(e.getMessage(), e);
-                List<Map<String,String>> errors = new ArrayList<Map<String,String>>();
-                Map<String, String> error = new HashMap<String, String>();
-                error.put("type", e.getClass().getName());
-                error.put("message", e.getLocalizedMessage());
-                errors.add(error);
-                outcome = new Outcome(null, errors);
-        	}
-        	
+        } catch (UnsupportedEncodingException e) {
+            //catch parsing errors for malformed submissions
+        	//these errors should never happen
+            log.error(e.getMessage(), e);
+            Map<String, String> error;
+            List<Map<String,String>> errors = new ArrayList<Map<String,String>>();
+            error = new HashMap<String, String>();
+            error.put("type", e.getClass().getName());
+            error.put("message", e.getLocalizedMessage());
+            errors.add(error);
+            outcome = new Outcome(null, errors);
         } catch (Exception e) {
             //general catch all for other errors, e.g SQL
             log.error(e.getMessage(), e);
