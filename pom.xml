@@ -35,8 +35,10 @@
 		<!-- servlet - provided by container -->
 		<dependency>
 			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<version>2.5</version>
+<!-- 			<artifactId>servlet-api</artifactId> -->
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.0.1</version> 
+			<!-- requires tomcat 7.0.x -->
 			<scope>provided</scope>
 		</dependency>
 
