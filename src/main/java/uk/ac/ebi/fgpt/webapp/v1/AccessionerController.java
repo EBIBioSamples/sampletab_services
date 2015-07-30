@@ -47,11 +47,6 @@ import uk.ac.ebi.fgpt.sampletab.CorrectorAddAttr;
 @RequestMapping
 public class AccessionerController {
     
-    private String host;
-    private int port;
-    private String database;
-    private String username;
-    private String password;
     private Accessioner accessioner;
     
     private Logger log = LoggerFactory.getLogger(getClass());
@@ -165,17 +160,32 @@ public class AccessionerController {
         	//if its a recoverable SQL exception, reconnect to the database and retry
         	if (SQLRecoverableException.class.isInstance(e.getCause())) {
         		log.info("Attemtying recovery...");
-                DataSource ds = null;
-        		try {
-        			ds = Accessioner.getDataSource(host, 
-        			        port, database, username, password);
-        		} catch (ClassNotFoundException e2) {
-        			log.error("Unable to find driver class", e);
-        		}
-        		synchronized(accessioner) {
-        			accessioner.setDataSource(ds);
-        		}
-        		outcome = doAccession(sampletab);
+        		DataSource ds = null;
+				try {
+					Context initCtx = new InitialContext();
+	        		Context envCtx = (Context) initCtx.lookup("java:comp/env");
+	        		ds = (DataSource) envCtx.lookup("jdbc/accessionDB");
+				} catch (NamingException e1) {
+	                log.error("Original error: "+e.getMessage(), e);
+	                log.error("Retry error: "+e1.getMessage(), e1);
+	                List<Map<String,String>> errors = new ArrayList<Map<String,String>>();
+	                Map<String, String> error;
+	                error = new HashMap<String, String>();
+	                error.put("type", e.getClass().getName());
+	                error.put("message", e.getLocalizedMessage());
+	                errors.add(error);
+	                error = new HashMap<String, String>();
+	                error.put("type", e1.getClass().getName());
+	                error.put("message", e1.getLocalizedMessage());
+	                errors.add(error);
+	                outcome = new Outcome(null, errors);
+				}
+				if (ds != null) {
+	        		synchronized(accessioner) {
+	        			accessioner.setDataSource(ds);
+	        		}
+	        		outcome = doAccession(sampletab);
+				}
         	} else {
                 //general catch all for other errors, e.g SQL
                 log.error(e.getMessage(), e);
