@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
@@ -53,31 +56,29 @@ public class AccessionerController {
     
     private Logger log = LoggerFactory.getLogger(getClass());
     
-    public AccessionerController(){
+    public AccessionerController() throws NamingException {
 
-        Properties properties = new Properties();
-        try {
-            InputStream is = AccessionerController.class.getResourceAsStream("/oracle.properties");
-            properties.load(is);
-        } catch (IOException e) {
-            log.error("Unable to read resource properties", e);
-            accessioner = null;
-            return;
-        }
-        this.host = properties.getProperty("hostname");
-        this.port = new Integer(properties.getProperty("port"));
-        this.database = properties.getProperty("database");
-        this.username = properties.getProperty("username");
-        this.password = properties.getProperty("password");
-
-        //setup the accesioner
-        DataSource ds = null;
-		try {
-			ds = Accessioner.getDataSource(host, 
-			        port, database, username, password);
-		} catch (ClassNotFoundException e) {
-			log.error("Unable to find driver class", e);
-		}
+        //setup the accesioner data source via JNDI
+        //for Tomcat, need an Resource defined in the context xml file  
+        // which is the file named like the path with <Context in it
+		/*
+   <Resource 
+      name="jdbc/accessionDB"
+      type="javax.sql.DataSource"
+      factory="org.apache.tomcat.dbcp.dbcp2.BasicDataSourceFactory"
+      driverClassName="oracle.jdbc.driver.OracleDriver"
+      url="jdbc:oracle:thin:@xxxxx.ebi.ac.uk:xxxx:XXXXX"
+      username="xxxxx"
+      password="xxxxx"
+      />
+		 */
+		
+		// Obtain our environment naming context
+		Context initCtx = new InitialContext();
+		Context envCtx = (Context) initCtx.lookup("java:comp/env");
+		DataSource ds = (DataSource) envCtx.lookup("jdbc/accessionDB");
+		
+		//create the datasource
         accessioner = new Accessioner(ds);
     }
     
