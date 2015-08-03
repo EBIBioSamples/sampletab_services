@@ -34,10 +34,9 @@ public class Config {
       />
 		 */
 		
-		// Obtain our environment naming context
+    	//Use spring to get the JNDI reference
         JndiTemplate jndiTemplate = new JndiTemplate();
-        DataSource dataSource
-                = (DataSource) jndiTemplate.lookup("java:comp/env/jdbc/accessionDB");
+        DataSource dataSource = (DataSource) jndiTemplate.lookup("java:comp/env/jdbc/accessionDB");
 		
 		//create the datasource
     	return new Accessioner(dataSource);
