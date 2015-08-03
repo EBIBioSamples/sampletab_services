@@ -17,6 +17,26 @@ public class Config {
 	}
 
 
+	/**
+	 * This is a bean backing the accessioning service connection to the database.
+	 * It should only be used for startup connection validation - most of the time
+	 * you should use the Accessioner from the getAccessioner bean via Spring autowiring.
+	 * 
+	 * @return
+	 * @throws NamingException
+	 */
+    @Bean
+    public DataSource getAccessionDataSource() throws NamingException {
+        JndiTemplate jndiTemplate = new JndiTemplate();
+        return (DataSource) jndiTemplate.lookup("java:comp/env/jdbc/accessionDB");
+    }
+
+    /**
+     * This is the main bean for interactions with the accessioning service.
+     * 
+     * @return
+     * @throws NamingException
+     */
     @Bean
     public Accessioner getAccessioner() throws NamingException {
         //setup the accesioner data source via JNDI
