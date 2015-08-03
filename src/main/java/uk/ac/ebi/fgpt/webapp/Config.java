@@ -18,7 +18,7 @@ public class Config {
 
 
     @Bean
-    private Accessioner getAccessioner() throws NamingException {
+    public Accessioner getAccessioner() throws NamingException {
         //setup the accesioner data source via JNDI
         //for Tomcat, need an Resource defined in the context xml file  
         // which is the file named like the path with <Context in it
