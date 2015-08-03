@@ -23,8 +23,11 @@ import javax.sql.DataSource;
 import org.mged.magetab.error.ErrorItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.RecoverableDataAccessException;
+import org.springframework.jndi.JndiTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,7 +43,7 @@ import uk.ac.ebi.fgpt.sampletab.CorrectorAddAttr;
 
 /**
  * A spring controller that returns an accessioned version of a POSTed SampleTab
- *
+ * 
  * @author Adam Faulconbridge
  * @date 02/05/12
  */
@@ -48,34 +51,13 @@ import uk.ac.ebi.fgpt.sampletab.CorrectorAddAttr;
 @RequestMapping
 public class AccessionerController {
     
-    private Accessioner accessioner;
-    
+	@Autowired
+	private Accessioner accessioner;
+	
     private Logger log = LoggerFactory.getLogger(getClass());
     
-    public AccessionerController() throws NamingException {
-
-        //setup the accesioner data source via JNDI
-        //for Tomcat, need an Resource defined in the context xml file  
-        // which is the file named like the path with <Context in it
-		/*
-   <Resource 
-      name="jdbc/accessionDB"
-      type="javax.sql.DataSource"
-      factory="org.apache.tomcat.dbcp.dbcp2.BasicDataSourceFactory"
-      driverClassName="oracle.jdbc.driver.OracleDriver"
-      url="jdbc:oracle:thin:@xxxxx.ebi.ac.uk:xxxx:XXXXX"
-      username="xxxxx"
-      password="xxxxx"
-      />
-		 */
-		
-		// Obtain our environment naming context
-		Context initCtx = new InitialContext();
-		Context envCtx = (Context) initCtx.lookup("java:comp/env");
-		DataSource ds = (DataSource) envCtx.lookup("jdbc/accessionDB");
-		
-		//create the datasource
-        accessioner = new Accessioner(ds);
+    public AccessionerController() {
+    	
     }
     
     /*
@@ -180,5 +162,4 @@ public class AccessionerController {
         } 
         return outcome;
     }
-    
 }

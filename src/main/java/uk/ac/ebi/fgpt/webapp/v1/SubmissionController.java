@@ -24,6 +24,7 @@ import javax.sql.DataSource;
 import org.mged.magetab.error.ErrorItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,12 +58,14 @@ public class SubmissionController {
     private Logger log = LoggerFactory.getLogger(getClass());
                 
     private final File path;
-    private Accessioner accessioner = null;
+    
+    @Autowired
+    private Accessioner accessioner;
    
     
     private Corrector corrector;
     
-    public SubmissionController() throws NamingException {
+    public SubmissionController()  {
         Properties properties = new Properties();
         try {
             InputStream is = SubmissionController.class.getResourceAsStream("/sampletab.properties");
@@ -78,15 +81,6 @@ public class SubmissionController {
             log.error("Submission path "+path+" does not exist");
         }
         
-        //See AccessionerController for more information
-		// Obtain our environment naming context
-		Context initCtx = new InitialContext();
-		Context envCtx = (Context) initCtx.lookup("java:comp/env");
-		DataSource ds = (DataSource) envCtx.lookup("jdbc/accessionDB");
-		
-		//create the datasource
-        accessioner = new Accessioner(ds);
-                        
         corrector = new Corrector();
     }
     
