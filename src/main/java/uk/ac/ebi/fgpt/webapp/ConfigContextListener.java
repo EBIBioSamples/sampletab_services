@@ -45,6 +45,7 @@ public class ConfigContextListener implements ServletContextListener {
 			c = accessionDataSource.getConnection();
 			if (!c.isValid(10)) {
 				log.error("Unable to validate database connection");
+				System.out.println("Unable to validate database connection");
 				throw new RuntimeException("Unable to validate database connection");
 			}
 		} catch (SQLException e) {
@@ -65,6 +66,7 @@ public class ConfigContextListener implements ServletContextListener {
     	
     	if (!path.exists() || !path.isDirectory()) {
     		log.error("SampletabProperties path is not valid");
+			System.out.println("SampletabProperties path is not valid");
     		throw new RuntimeException("SampletabProperties path is not valid");
     	}
 	}
