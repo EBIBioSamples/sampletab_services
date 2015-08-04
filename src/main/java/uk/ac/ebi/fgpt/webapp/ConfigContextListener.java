@@ -41,6 +41,7 @@ public class ConfigContextListener implements ServletContextListener {
 
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
+/*		
 		//test the connection to the accessioning database
 		//this will usually have been defined in the Context.xml via JNDI
 		//and be autowired by spring
@@ -73,6 +74,7 @@ public class ConfigContextListener implements ServletContextListener {
 			System.out.println("SampletabProperties path is not valid");
     		throw new RuntimeException("SampletabProperties path is not valid");
     	}
+*/    	
 	}
 
 	@Override
