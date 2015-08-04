@@ -18,6 +18,7 @@ import org.mged.magetab.error.ErrorItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,7 +38,6 @@ import uk.ac.ebi.fgpt.sampletab.Accessioner;
 import uk.ac.ebi.fgpt.sampletab.Corrector;
 import uk.ac.ebi.fgpt.sampletab.utils.SampleTabUtils;
 import uk.ac.ebi.fgpt.webapp.APIKey;
-import uk.ac.ebi.fgpt.webapp.SampletabProperties;
 
 /**
  * A spring controller that returns an accessioned version of a POSTed SampleTab
@@ -54,6 +54,9 @@ public class SubmissionController {
     @Autowired
     private Accessioner accessioner;
     
+    @Value("${submissionpath}") //this is read from the context xml Parameter element
+    private String submissionPath;
+    
     private Corrector corrector;
     
     public SubmissionController()  {        
@@ -61,7 +64,7 @@ public class SubmissionController {
     }
     
     protected File getSubmissionPath() {
-    	File path = new File(SampletabProperties.getProperty("submissionpath"));
+    	File path = new File(submissionPath);
     	path = path.getAbsoluteFile();
     	return path;
     }

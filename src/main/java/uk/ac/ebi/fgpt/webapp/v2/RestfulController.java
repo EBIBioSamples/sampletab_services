@@ -16,9 +16,11 @@ import java.util.regex.Pattern;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -51,7 +53,6 @@ import uk.ac.ebi.fgpt.sampletab.utils.samplegroupexport.PropertyType;
 import uk.ac.ebi.fgpt.sampletab.utils.samplegroupexport.QualifiedValueType;
 import uk.ac.ebi.fgpt.sampletab.utils.samplegroupexport.TermSourceREFType;
 import uk.ac.ebi.fgpt.webapp.APIKey;
-import uk.ac.ebi.fgpt.webapp.SampletabProperties;
 
 @Controller
 @RequestMapping("/v2")
@@ -61,7 +62,10 @@ public class RestfulController {
     private Logger log = LoggerFactory.getLogger(getClass());
     
     @Autowired
-    private Accessioner accessioner;	
+    private Accessioner accessioner;
+    
+    @Value("${submissionpath}") //this is read from the context xml Parameter element
+    private String submissionPath;	
 	
     //2014-05-20T23:00:00+00:00
     private DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'+00:00'", Locale.ENGLISH);
@@ -75,7 +79,7 @@ public class RestfulController {
     }
 
     protected File getSubmissionPath() {
-    	File path = new File(SampletabProperties.getProperty("submissionpath"));
+    	File path = new File(submissionPath);
     	path = path.getAbsoluteFile();
     	return path;
     }

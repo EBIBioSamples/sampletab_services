@@ -12,6 +12,7 @@ import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Listens to startup of the web app and tests database and other
@@ -30,6 +31,9 @@ public class ConfigContextListener implements ServletContextListener {
     	
 	@Autowired
 	private DataSource accessionDataSource;
+	
+    @Value("${submissionpath}") //this is read from the context xml Parameter element
+    private String submissionPath;
 	
 	public ConfigContextListener() {
 		
@@ -61,7 +65,7 @@ public class ConfigContextListener implements ServletContextListener {
 		}
 		
 		//test the submission path is valid and correct
-    	File path = new File(SampletabProperties.getProperty("submissionpath"));
+    	File path = new File(submissionPath);
     	path = path.getAbsoluteFile();
     	
     	if (!path.exists() || !path.isDirectory()) {
