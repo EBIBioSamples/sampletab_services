@@ -44,6 +44,7 @@ import uk.ac.ebi.fgpt.sampletab.Accessioner;
 import uk.ac.ebi.fgpt.sampletab.Corrector;
 import uk.ac.ebi.fgpt.sampletab.utils.SampleTabUtils;
 import uk.ac.ebi.fgpt.webapp.APIKey;
+import uk.ac.ebi.fgpt.webapp.SampletabProperties;
 
 /**
  * A spring controller that returns an accessioned version of a POSTed SampleTab
@@ -56,39 +57,27 @@ import uk.ac.ebi.fgpt.webapp.APIKey;
 public class SubmissionController {
         
     private Logger log = LoggerFactory.getLogger(getClass());
-                
-    private final File path;
-    
+                    
     @Autowired
     private Accessioner accessioner;
-   
     
     private Corrector corrector;
     
-    public SubmissionController()  {
-        Properties properties = new Properties();
-        try {
-            InputStream is = SubmissionController.class.getResourceAsStream("/sampletab.properties");
-            properties.load(is);
-        } catch (IOException e) {
-            log.error("Unable to read resource properties", e);
-            path = null;
-            return;
-        }
-        path = new File(properties.getProperty("submissionpath"));
-        if (!path.exists()){
-            //TODO throw error
-            log.error("Submission path "+path+" does not exist");
-        }
-        
+    public SubmissionController()  {        
         corrector = new Corrector();
+    }
+    
+    protected File getSubmissionPath() {
+    	File path = new File(SampletabProperties.getProperty("submissionpath"));
+    	path = path.getAbsoluteFile();
+    	return path;
     }
     
     
     private synchronized int getNewSubID() throws IOException{
         int maxSubID = 0;
         Pattern pattern = Pattern.compile("^GSB-([0-9]+)$");
-        File pathSubdir = new File(path, "GSB");
+        File pathSubdir = new File(getSubmissionPath(), "GSB");
         for (File subdir : pathSubdir.listFiles()) {
             if (!subdir.isDirectory()) {
                 continue;
@@ -105,7 +94,7 @@ public class SubmissionController {
             }
         }
         maxSubID++;
-        File subDir = new File(path.getAbsolutePath(), SampleTabUtils.getSubmissionDirFile("GSB-"+maxSubID).toString());
+        File subDir = new File(getSubmissionPath(), SampleTabUtils.getSubmissionDirFile("GSB-"+maxSubID).toString());
         if (!subDir.mkdirs()) {
             throw new IOException("Unable to create submission directory");
         }
@@ -201,7 +190,7 @@ public class SubmissionController {
                 }
             }
             File subdir = SampleTabUtils.getSubmissionDirFile(sampledata.msi.submissionIdentifier);
-            subdir = new File(path.toString(), subdir.toString());
+            subdir = new File(getSubmissionPath(), subdir.toString());
             File outFile = new File(subdir, "sampletab.pre.txt");
 
             //replace implicit derived from with explicit derived from relationships

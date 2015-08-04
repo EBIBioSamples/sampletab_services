@@ -3,6 +3,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:jee="http://www.springframework.org/schema/jee"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
        http://www.springframework.org/schema/beans/spring-beans.xsd
        http://www.springframework.org/schema/context
@@ -17,4 +18,15 @@
     <!-- drive MVC setup based on @Controller, @RequestMapping annotations etc -->
     <mvc:annotation-driven />
 
+    <!-- JNDI declaration of required datasources -->
+    <jee:jndi-lookup id="sampletabPropertiesFile"
+                     jndi-name="/file/SAMPLETAB_PROPERTIES"
+                     resource-ref="true" />
+                     
+    <!-- properties, initialized from the file and wraps a singleton -->
+    <bean name="sampletabProperties"
+          class="uk.ac.ebi.fgpt.webapp.SampletabProperties"
+          factory-method="getSampletabProperties">
+        <property name="propertiesFile" ref="sampletabPropertiesFile" />
+    </bean>
 </beans>

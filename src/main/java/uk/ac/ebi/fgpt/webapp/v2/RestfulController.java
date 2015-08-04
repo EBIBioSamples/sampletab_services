@@ -26,6 +26,7 @@ import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -58,48 +59,34 @@ import uk.ac.ebi.fgpt.sampletab.utils.samplegroupexport.PropertyType;
 import uk.ac.ebi.fgpt.sampletab.utils.samplegroupexport.QualifiedValueType;
 import uk.ac.ebi.fgpt.sampletab.utils.samplegroupexport.TermSourceREFType;
 import uk.ac.ebi.fgpt.webapp.APIKey;
+import uk.ac.ebi.fgpt.webapp.SampletabProperties;
 
 @Controller
 @RequestMapping("/v2")
 public class RestfulController {
-    private Accessioner accessioner = null;
-    
-    private File path;
-    //2014-05-20T23:00:00+00:00
-    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'+00:00'", Locale.ENGLISH);
+
     
     private Logger log = LoggerFactory.getLogger(getClass());
     
-    public RestfulController() throws NamingException {
-        Properties properties = new Properties();
-        try {
-            InputStream is = getClass().getResourceAsStream("/sampletab.properties");
-            properties.load(is);
-        } catch (IOException e) {
-            log.error("Unable to read resource sampletab.properties", e);
-            return;
-        }
-        
-        path = new File(properties.getProperty("submissionpath"));
-        if (!path.exists()){
-            //TODO throw error
-            log.error("Submission path "+path+" does not exist");
-        }
-        
-
-        //See AccessionerController for more information
-		// Obtain our environment naming context
-		Context initCtx = new InitialContext();
-		Context envCtx = (Context) initCtx.lookup("java:comp/env");
-		DataSource ds = (DataSource) envCtx.lookup("jdbc/accessionDB");
-        accessioner = new Accessioner(ds);
+    @Autowired
+    private Accessioner accessioner;	
+	
+    //2014-05-20T23:00:00+00:00
+    private DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'+00:00'", Locale.ENGLISH);
+    
+    public RestfulController()  {
         
     }
     
     protected Accessioner getAccessioner() {
         return accessioner;
     }
-    
+
+    protected File getSubmissionPath() {
+    	File path = new File(SampletabProperties.getProperty("submissionpath"));
+    	path = path.getAbsoluteFile();
+    	return path;
+    }
     
     
     @RequestMapping(value="/source/{source}/sample", method=RequestMethod.POST, produces="text/plain", consumes="application/xml")
@@ -413,7 +400,7 @@ public class RestfulController {
         if (sd.msi.submissionIdentifier == null) {
             int maxSubID = 0;
             Pattern pattern = Pattern.compile("^GSB-([0-9]+)$");
-            File pathSubdir = new File(path, "GSB");
+            File pathSubdir = new File(getSubmissionPath(), "GSB");
             for (File subdir : pathSubdir.listFiles()) {
                 if (!subdir.isDirectory()) {
                     continue;
@@ -430,7 +417,7 @@ public class RestfulController {
                 }
             }
             maxSubID++;
-            File subDir = new File(path.getAbsolutePath(), SampleTabUtils.getSubmissionDirFile("GSB-"+maxSubID).toString());
+            File subDir = new File(getSubmissionPath(), SampleTabUtils.getSubmissionDirFile("GSB-"+maxSubID).toString());
             if (!subDir.mkdirs()) {
                 throw new IOException("Unable to create submission directory");
             }
@@ -442,7 +429,7 @@ public class RestfulController {
         }
         
 
-        File subdir = new File(path.getAbsolutePath(), SampleTabUtils.getSubmissionDirFile(sd.msi.submissionIdentifier).toString());
+        File subdir = new File(getSubmissionPath(), SampleTabUtils.getSubmissionDirFile(sd.msi.submissionIdentifier).toString());
         File outFile = new File(subdir, "sampletab.pre.txt");
 
         //TODO check this is a sensible submission if overwriting

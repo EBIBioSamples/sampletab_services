@@ -1,5 +1,6 @@
 package uk.ac.ebi.fgpt.webapp;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -10,6 +11,8 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 import javax.sql.DataSource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import uk.ac.ebi.fgpt.sampletab.Accessioner;
@@ -27,7 +30,8 @@ import uk.ac.ebi.fgpt.sampletab.Accessioner;
 @WebListener
 public class ConfigContextListener implements ServletContextListener {
 
-	
+    private Logger log = LoggerFactory.getLogger(getClass());
+    	
 	@Autowired
 	private DataSource accessionDataSource;
 	
@@ -44,6 +48,7 @@ public class ConfigContextListener implements ServletContextListener {
 		try {
 			c = accessionDataSource.getConnection();
 			if (!c.isValid(10)) {
+				log.error("Unable to validate database connection");
 				throw new RuntimeException("Unable to validate database connection");
 			}
 		} catch (SQLException e) {
@@ -57,6 +62,15 @@ public class ConfigContextListener implements ServletContextListener {
 				}
 			}
 		}
+		
+		//test the submission path is valid and correct
+    	File path = new File(SampletabProperties.getProperty("submissionpath"));
+    	path = path.getAbsoluteFile();
+    	
+    	if (!path.exists() || !path.isDirectory()) {
+    		log.error("SampletabProperties path is not valid");
+    		throw new RuntimeException("SampletabProperties path is not valid");
+    	}
 	}
 
 	@Override
