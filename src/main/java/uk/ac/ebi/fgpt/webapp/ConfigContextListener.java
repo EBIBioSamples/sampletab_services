@@ -25,8 +25,6 @@ import uk.ac.ebi.fgpt.sampletab.Accessioner;
  */
 public class ConfigContextListener implements ServletContextListener {
 
-	@Autowired
-	private Accessioner accessioner;
 	
 	@Autowired
 	private DataSource accessionDataSource;
@@ -40,12 +38,22 @@ public class ConfigContextListener implements ServletContextListener {
 		//test the connection to the accessioning database
 		//this will usually have been defined in the Context.xml via JNDI
 		//and be autowired by spring
-		Connection c;
+		Connection c = null;
 		try {
 			c = accessionDataSource.getConnection();
-			c.close();
+			if (!c.isValid(10)) {
+				throw new RuntimeException("Unable to validate database connection");
+			}
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
+		} finally {
+			if (c != null) {
+				try {
+					c.close();
+				} catch (SQLException e) {
+					//do nothing
+				}
+			}
 		}
 	}
 
