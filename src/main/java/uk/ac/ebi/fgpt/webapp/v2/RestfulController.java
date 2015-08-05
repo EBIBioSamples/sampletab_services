@@ -166,6 +166,7 @@ public class RestfulController {
     			return new ResponseEntity<String>("Sample Accession in XML must match sourceid in URL", HttpStatus.CONFLICT);
     		}
     		//accept this submission
+    		accession = sourceid;
         	response = new ResponseEntity<String>(accession, HttpStatus.ACCEPTED);
     	} else {
     		//its not a biosamples id, but a source id
@@ -182,12 +183,10 @@ public class RestfulController {
         	response = new ResponseEntity<String>(accession, HttpStatus.ACCEPTED);        
     	}
     	
-    	if (accession != null) {
-	    	String submission = getSubmissionForSampleAccession(accession);
-			if (submission != null) {
-				sd.msi.submissionIdentifier = submission;
-			}
-    	}
+    	String submission = getSubmissionForSampleAccession(accession);
+		if (submission != null) {
+			sd.msi.submissionIdentifier = submission;
+		}
     	
     	//save the output somewhere 
         saveSampleData(sd);
