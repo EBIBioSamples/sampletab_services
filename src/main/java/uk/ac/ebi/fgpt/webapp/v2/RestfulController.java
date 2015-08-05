@@ -79,6 +79,10 @@ public class RestfulController {
     }
 
     protected File getSubmissionPath() {
+    	if (submissionPath == null) {
+    		throw new RuntimeException("Expected submissionpath to be non-null");
+    	}
+    	log.info("submissionpath is "+submissionPath);
     	File path = new File(submissionPath);
     	path = path.getAbsoluteFile();
     	return path;
