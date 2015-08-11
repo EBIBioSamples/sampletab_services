@@ -204,34 +204,37 @@ public class SubmissionController {
                 }
             }
             
+            //if there are any groups, use those only
+            //if there are no groups, then
             //create a new group and add all non-grouped samples to it
-            GroupNode othergroup = new GroupNode("Other Group");
-            for (SampleNode sample : sampledata.scd.getNodes(SampleNode.class)) {
-                // check there is not an existing group first...
-                boolean sampleInGroup = false;
-                //even if it has child nodes, both parent and child must be in a group
-                //this will lead to some weird looking row duplications, but since this is an internal 
-                //intermediate file it is not important
-                //Follow up: since implicit derived from relationships are made explicit above, 
-                //this is not an issue any more
-                for (Node n : sample.getChildNodes()) {
-                   if (GroupNode.class.isInstance(n)) {
-                        sampleInGroup = true;
-                    }
-                }
-                
-                if (!sampleInGroup){
-                    log.debug("Adding sample " + sample.getNodeName() + " to group " + othergroup.getNodeName());
-                    othergroup.addSample(sample);
-                }
+            if (sampledata.scd.getNodes(GroupNode.class).size() > 0) {
+	            GroupNode othergroup = new GroupNode("Other Group");
+	            for (SampleNode sample : sampledata.scd.getNodes(SampleNode.class)) {
+	                // check there is not an existing group first...
+	                boolean sampleInGroup = false;
+	                //even if it has child nodes, both parent and child must be in a group
+	                //this will lead to some weird looking row duplications, but since this is an internal 
+	                //intermediate file it is not important
+	                //Follow up: since implicit derived from relationships are made explicit above, 
+	                //this is not an issue any more
+	                for (Node n : sample.getChildNodes()) {
+	                   if (GroupNode.class.isInstance(n)) {
+	                        sampleInGroup = true;
+	                    }
+	                }
+	                
+	                if (!sampleInGroup){
+	                    log.debug("Adding sample " + sample.getNodeName() + " to group " + othergroup.getNodeName());
+	                    othergroup.addSample(sample);
+	                }
+	            }
+	            //only add the new group if it has any samples
+	            if (othergroup.getParentNodes().size() > 0){
+	                sampledata.scd.addNode(othergroup);
+	                log.info("Added Other group node");
+	                // also need to accession the new node
+	            }
             }
-            //only add the new group if it has any samples
-            if (othergroup.getParentNodes().size() > 0){
-                sampledata.scd.addNode(othergroup);
-                log.info("Added Other group node");
-                // also need to accession the new node
-            }
-            
             //correct errors
             synchronized(corrector) {
                 corrector.correct(sampledata);
