@@ -431,7 +431,7 @@ public class RestfulController {
         File subdir = new File(getSubmissionPath(), SampleTabUtils.getSubmissionDirFile(sd.msi.submissionIdentifier).toString());
         File outFile = new File(subdir, "sampletab.pre.txt");
 
-        //TODO check this is a sensible submission if overwriting
+        //TODO check this is a sensible submission to be overwriting
         
         SampleTabWriter writer = null;
         try {
