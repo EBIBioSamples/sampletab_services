@@ -207,7 +207,7 @@ public class SubmissionController {
             //if there are any groups, use those only
             //if there are no groups, then
             //create a new group and add all non-grouped samples to it
-            if (sampledata.scd.getNodes(GroupNode.class).size() > 0) {
+            if (sampledata.scd.getNodes(GroupNode.class).size() == 0) {
 	            GroupNode othergroup = new GroupNode("Other Group");
 	            for (SampleNode sample : sampledata.scd.getNodes(SampleNode.class)) {
 	                // check there is not an existing group first...
