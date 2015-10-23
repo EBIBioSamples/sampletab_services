@@ -180,11 +180,18 @@ public class SubmissionController {
             } else {
                 //must be a GSB submission ID
                 if (sampledata.msi.submissionIdentifier == null || sampledata.msi.submissionIdentifier.length() == 0) {
+                	//if there is no sub ID and no samples/groups, then its an error
+                	if (sampledata.scd.getAllNodes().size() == 0) {
+                		return getErrorOutcome("Submission identifier invalid", "Must update existing submission Identifier, or specify samples/groups");
+                	}
                     sampledata.msi.submissionIdentifier = "GSB-"+getNewSubID();
                 } else if (!sampledata.msi.submissionIdentifier.matches("^GSB-[1-9][0-9]*$")) {
                     return getErrorOutcome("Submission identifier invalid", "Submission identifier must match regular expression ^GSB-[1-9][0-9]*$");
                 }
             }
+            
+            
+            
             File subdir = SampleTabUtils.getSubmissionDirFile(sampledata.msi.submissionIdentifier);
             subdir = new File(getSubmissionPath(), subdir.toString());
             File outFile = new File(subdir, "sampletab.pre.txt");
