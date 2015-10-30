@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -128,7 +129,12 @@ public class RestfulController {
             return new ResponseEntity<String>("apikey is not permitted for source", HttpStatus.FORBIDDEN);
         }
         
-        String newAccession = getAccessioner().singleAssaySample(source);
+        String newAccession = null;
+        try {
+        	newAccession = getAccessioner().singleAssaySample(source);
+        } catch (RecoverableDataAccessException e) {
+        	newAccession = getAccessioner().singleAssaySample(source);
+        }
         ResponseEntity<String> response = new ResponseEntity<String>(newAccession, HttpStatus.ACCEPTED);        
         
         return response;
@@ -174,7 +180,14 @@ public class RestfulController {
         	response = new ResponseEntity<String>(accession, HttpStatus.ACCEPTED);
     	} else {
     		//its not a biosamples id, but a source id
-    		accession = getAccessioner().retrieveAssaySample(sourceid, source);
+    		try {
+    			accession = getAccessioner().retrieveAssaySample(sourceid, source);
+    		} catch (RecoverableDataAccessException e) {
+    			//if it was a recoverable error, try again
+    			accession = getAccessioner().retrieveAssaySample(sourceid, source);
+    		}
+    		
+    		
             //reject if not already accessioned (PUT is an update)
     		if (accession == null) {
     			return new ResponseEntity<String>("PUT must be an update, use POST for new submissions", HttpStatus.BAD_REQUEST);
@@ -242,7 +255,12 @@ public class RestfulController {
     		//its a biosamples ID
     		return new ResponseEntity<String>("Do not request a new BioSamples accession for an existing BioSamples accession", HttpStatus.BAD_REQUEST);
     	} else {
-    		String accession = getAccessioner().singleAssaySample(sourceid, source);
+    		String accession = null;
+    		try {
+    			accession = getAccessioner().singleAssaySample(sourceid, source);
+    		} catch (RecoverableDataAccessException e) {
+    			accession = getAccessioner().singleAssaySample(sourceid, source);
+    		}
     		return new ResponseEntity<String>(accession, HttpStatus.ACCEPTED);
     	}
     }
@@ -276,10 +294,22 @@ public class RestfulController {
     		return new ResponseEntity<String>("Do not request a new BioSamples accession for an existing BioSamples accession", HttpStatus.BAD_REQUEST);
     	}
         //reject if already acessioned (POST is a one-time operation)
-    	if (getAccessioner().testAssaySample(sourceid, source)) {
+    	Boolean isAccessioned = null;
+    	try {
+    		isAccessioned = getAccessioner().testAssaySample(sourceid, source);
+    	} catch (RecoverableDataAccessException e) {
+    		isAccessioned = getAccessioner().testAssaySample(sourceid, source);
+    	}
+    	
+    	if (isAccessioned) {
 			return new ResponseEntity<String>("POST must be a new submission, use PUT for updates", HttpStatus.BAD_REQUEST);
     	}
-		String accession = getAccessioner().singleAssaySample(sourceid, source);
+		String accession = null;
+		try {
+			accession = getAccessioner().singleAssaySample(sourceid, source);
+		} catch (RecoverableDataAccessException e) {
+			accession = getAccessioner().singleAssaySample(sourceid, source);
+		}
 
 		//because this is in POST, it must be a new submission, therefore it won't have an existing submission
     	String submission = getSubmissionForSampleAccession(accession);
