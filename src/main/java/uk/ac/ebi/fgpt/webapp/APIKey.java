@@ -27,6 +27,8 @@ public class APIKey {
         	return "EBiSCIMS";
         } else if (apikey != null && apikey.equals("R1HKT5T756W92EM5")) {
         	return "FAANG";
+        } else if (apikey != null && apikey.equals("EFXD8H4KFWRT7HEM")) {
+            return ""; // available...
         } else {
             //invalid API key, throw exception
             throw new IllegalArgumentException("Invalid API key ("+apikey+")");
