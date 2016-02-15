@@ -27,6 +27,10 @@ public class APIKey {
         	return "EBiSCIMS";
         } else if (apikey != null && apikey.equals("R1HKT5T756W92EM5")) {
         	return "FAANG";
+        } else if (apikey != null && apikey.equals("M5C5G091K5P4FRU4")) {
+        	return "EVA";
+        } else if (apikey != null && apikey.equals("TW7NGC4T3ETAUED8")) {
+        	return "DGVa";
         } else if (apikey != null && apikey.equals("EFXD8H4KFWRT7HEM")) {
             return ""; // available...
         } else {
