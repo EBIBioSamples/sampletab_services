@@ -55,6 +55,25 @@
 		<!-- for general goodness -->
 		<!-- guava in biosd_common -->
 
+		<dependency>
+			<groupId>uk.ac.ebi.fgpt</groupId>
+			<artifactId>sampletab-converters</artifactId>
+			<version>1.0.24-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-log4j12</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>uk.ac.ebi.fg</groupId>
+			<artifactId>biosd_model</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+		</dependency>
 	</dependencies>
 
 	<repositories>
@@ -96,79 +115,15 @@
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
-		
+
 		<repository>
-		    <id>EBIBioSamples-GH-repo</id>
-		    <url>https://raw.githubusercontent.com/EBIBioSamples/EBIBioSamples.github.io/maven-repo</url>
-		    <snapshots>
-	        	<enabled>true</enabled>
-		    </snapshots>
-	    </repository>
+			<id>EBIBioSamples-GH-repo</id>
+			<url>https://raw.githubusercontent.com/EBIBioSamples/EBIBioSamples.github.io/maven-repo</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
 	</repositories>
-
-	<profiles>
-		<!-- profile for production, uses files from resources-production -->
-		<profile>
-			<id>production</id>
-			<activation>
-				<activeByDefault>false</activeByDefault>
-			</activation>
-			<dependencies>
-				<!-- SampleTab dependencies -->
-				<dependency>
-					<groupId>uk.ac.ebi.fgpt</groupId>
-					<artifactId>sampletab-converters</artifactId>
-					<version>1.0.23</version>
-				</dependency>
-				<dependency>
-					<groupId>uk.ac.ebi.fg</groupId>
-					<artifactId>biosd_model</artifactId>
-					<version>3.0</version>
-				</dependency>
-			</dependencies>
-		</profile>
-
-		<!-- profile for test, uses files from resources-test -->
-		<profile>
-			<id>test</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-			<dependencies>
-				<!-- SampleTab dependencies -->
-				<dependency>
-					<groupId>uk.ac.ebi.fgpt</groupId>
-					<artifactId>sampletab-converters</artifactId>
-					<version>1.0.24-SNAPSHOT</version>
-				</dependency>
-
-				<dependency>
-					<groupId>uk.ac.ebi.fg</groupId>
-					<artifactId>biosd_model</artifactId>
-				</dependency>
-			</dependencies>
-		</profile>
-
-		<!-- profile for development, uses files from resources-development -->
-		<profile>
-			<id>development</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-			<dependencies>
-				<!-- SampleTab dependencies -->
-				<dependency>
-					<groupId>uk.ac.ebi.fgpt</groupId>
-					<artifactId>sampletab-converters</artifactId>
-					<version>1.0.24-SNAPSHOT</version>
-				</dependency>
-				<dependency>
-					<groupId>uk.ac.ebi.fg</groupId>
-					<artifactId>biosd_model</artifactId>
-				</dependency>
-			</dependencies>
-		</profile>
-	</profiles>
 
 	<build>
 		<finalName>sampletab-accessioner</finalName>

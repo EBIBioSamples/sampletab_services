@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+
+  	<insertFromJNDI env-entry-name="java:comp/env/logprefix" as="LOGPREFIX" />
+	<appender name="File-Main" class="ch.qos.logback.core.FileAppender">
+		<File>logs/${HOSTNAME}/${LOGPREFIX}/SampleTab.log</File>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>%d{dd MMM yyyy - HH:mm:ss.SSS} %-5level [%thread] %logger{36}: %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<root level="INFO">
+		<appender-ref ref="File-Main" />
+	</root>
+
+</configuration>
