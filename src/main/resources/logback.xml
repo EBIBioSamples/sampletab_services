@@ -2,11 +2,18 @@
 
 <configuration>
 
-  	<insertFromJNDI env-entry-name="java:comp/env/logprefix" as="LOGPREFIX" />
-	<appender name="File-Main" class="ch.qos.logback.core.FileAppender">
-		<File>logs/${HOSTNAME}/${LOGPREFIX}/SampleTab.log</File>
+	<insertFromJNDI env-entry-name="java:comp/env/logprefix"
+		as="logprefix" />
+	<appender name="File-Main" class="ch.qos.logback.core.RollingFileAppender">
+		<File>${catalina.base}/logs/${tomcat.hostname}/${logprefix}/SampleTab.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- daily rollover -->
+			<fileNamePattern>${catalina.base}/logs/${tomcat.hostname}/${logprefix}/timeBasedlogFile.log.%d</fileNamePattern>
+			<maxHistory>30</maxHistory>
+		</rollingPolicy>
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<pattern>%d{dd MMM yyyy - HH:mm:ss.SSS} %-5level [%thread] %logger{36}: %msg%n</pattern>
+			<pattern>%d{dd MMM yyyy - HH:mm:ss.SSS} %-5level [%thread]
+				%logger{36}: %msg%n</pattern>
 		</encoder>
 	</appender>
 
