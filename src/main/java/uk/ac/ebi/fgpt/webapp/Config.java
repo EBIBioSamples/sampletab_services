@@ -3,64 +3,39 @@ package uk.ac.ebi.fgpt.webapp;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.jndi.JndiTemplate;
-
+import org.springframework.jdbc.datasource.lookup.JndiDataSourceLookup;
 import uk.ac.ebi.fgpt.sampletab.Accessioner;
 
-@Configuration
+//@Configuration
+@SpringBootApplication
 public class Config {
+    
+	private Logger log = LoggerFactory.getLogger(getClass());
 
 	public Config() {
-		// TODO Auto-generated constructor stub
-	}
+	}    
+	
+	@Bean(name = "accessionDataSource")
+    @Primary
+    public DataSource getAccesionDataSource() {
 
-
-	/**
-	 * This is a bean backing the accessioning service connection to the database.
-	 * It should only be used for startup connection validation - most of the time
-	 * you should use the Accessioner from the getAccessioner bean via Spring autowiring.
-	 * 
-	 * @return
-	 * @throws NamingException
-	 */
-    @Bean
-    public DataSource getAccessionDataSource() throws NamingException {
-        JndiTemplate jndiTemplate = new JndiTemplate();
-        return (DataSource) jndiTemplate.lookup("java:comp/env/jdbc/accessionDB");
+		JndiDataSourceLookup dataSourceLookup = new JndiDataSourceLookup();
+		DataSource dataSource = dataSourceLookup.getDataSource("java:comp/env/jdbc/accessionDB");
+		return dataSource;
     }
-
-    /**
-     * This is the main bean for interactions with the accessioning service.
-     * 
-     * @return
-     * @throws NamingException
-     */
+	
     @Bean
-    public Accessioner getAccessioner() throws NamingException {
-        //setup the accesioner data source via JNDI
-        //for Tomcat, need an Resource defined in the context xml file  
-        // which is the file named like the path with <Context in it
-		/*
-   <Resource 
-      name="jdbc/accessionDB"
-      type="javax.sql.DataSource"
-      factory="org.apache.tomcat.dbcp.dbcp2.BasicDataSourceFactory"
-      driverClassName="oracle.jdbc.driver.OracleDriver"
-      url="jdbc:oracle:thin:@xxxxx.ebi.ac.uk:xxxx:XXXXX"
-      username="xxxxx"
-      password="xxxxx"
-      />
-		 */
-		
-    	//Use spring to get the JNDI reference
-        JndiTemplate jndiTemplate = new JndiTemplate();
-        DataSource dataSource = (DataSource) jndiTemplate.lookup("java:comp/env/jdbc/accessionDB");
-		
-		//create the datasource
-    	return new Accessioner(dataSource);
+    @Autowired
+    public Accessioner getAccessioner(@Qualifier("accessionDataSource") DataSource accessionDataSource) throws NamingException {
+    	return new Accessioner(accessionDataSource);
     }
     
     @Bean
