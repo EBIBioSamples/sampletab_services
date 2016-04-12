@@ -1,12 +1,30 @@
 package uk.ac.ebi.fgpt.webapp;
 
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import uk.ac.ebi.fgpt.sampletab.Accessioner;
+import uk.ac.ebi.fgpt.sampletab.Accessioner.AccessionUser;
+
 public class APIKey {
 
+	@Autowired
+	private Accessioner accessioner;
     
-    public static String getAPIKeyOwner(String apikey) {
+    public String getAPIKeyOwner(String apikey) {
         //generate keys with following python:
         //  "".join([random.choice("ABCDEFGHKLMNPRTUWXY0123456789") for x in xrange(16)])
         //NB: avoid similar looking letters/numbers
+    	
+    	Optional<AccessionUser> user = accessioner.getUserForAPIkey(apikey);
+    	if (!user.isPresent()) {
+            //invalid API key, throw exception
+            throw new IllegalArgumentException("Invalid API key ("+apikey+")");
+    	} else {
+    		return user.get().username;
+    	}
+    	/*
         if (apikey != null && apikey.equals("NZ80KZ7G13NHYDM3")) {
             return "ENA";
         } else if (apikey != null && apikey.equals("XWURYU77KWT663IQ")) {
@@ -37,9 +55,10 @@ public class APIKey {
             //invalid API key, throw exception
             throw new IllegalArgumentException("Invalid API key ("+apikey+")");
         }
+        */
     }
     
-    public static boolean canKeyOwnerEditSource(String keyOwner, String source) {
+    public boolean canKeyOwnerEditSource(String keyOwner, String source) {
         if (keyOwner == null || keyOwner.trim().length() == 0) {
             throw new IllegalArgumentException("keyOnwer must a sensible string");
         }
