@@ -4,7 +4,7 @@
 
 	<insertFromJNDI env-entry-name="java:comp/env/logprefix"
 		as="logprefix" />
-	<appender name="File-Main" class="ch.qos.logback.core.RollingFileAppender">
+	<appender name="File-Main" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<File>${catalina.base}/logs/${tomcat.hostname}/${logprefix}/SampleTab.log</File>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<!-- daily rollover -->
