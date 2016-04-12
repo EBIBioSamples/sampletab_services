@@ -58,9 +58,11 @@ import uk.ac.ebi.fgpt.webapp.APIKey;
 @Controller
 @RequestMapping("/v2")
 public class RestfulController {
-
     
     private Logger log = LoggerFactory.getLogger(getClass());
+
+    @Autowired
+    private APIKey apiKey;
     
     @Autowired
     private Accessioner accessioner;
@@ -120,12 +122,12 @@ public class RestfulController {
         
     	String keyOwner = null;
         try {
-        	keyOwner = APIKey.getAPIKeyOwner(apikey);
+        	keyOwner = apiKey.getAPIKeyOwner(apikey);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
         
-        if (!APIKey.canKeyOwnerEditSource(keyOwner, source)) {
+        if (!apiKey.canKeyOwnerEditSource(keyOwner, source)) {
             return new ResponseEntity<String>("apikey is not permitted for source", HttpStatus.FORBIDDEN);
         }
         
@@ -150,12 +152,12 @@ public class RestfulController {
         
     	String keyOwner = null;
         try {
-        	keyOwner = APIKey.getAPIKeyOwner(apikey);
+        	keyOwner = apiKey.getAPIKeyOwner(apikey);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
         
-        if (!APIKey.canKeyOwnerEditSource(keyOwner, source)) {
+        if (!apiKey.canKeyOwnerEditSource(keyOwner, source)) {
             return new ResponseEntity<String>("That API key is not permitted for that source", HttpStatus.FORBIDDEN);
         }
                 
@@ -218,12 +220,12 @@ public class RestfulController {
         source = source.toLowerCase();
     	String keyOwner = null;
         try {
-        	keyOwner = APIKey.getAPIKeyOwner(apikey);
+        	keyOwner = apiKey.getAPIKeyOwner(apikey);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
         
-        if (!APIKey.canKeyOwnerEditSource(keyOwner, source)) {
+        if (!apiKey.canKeyOwnerEditSource(keyOwner, source)) {
             return new ResponseEntity<String>("That API key is not permitted for that source", HttpStatus.FORBIDDEN);
         }
 
@@ -242,12 +244,12 @@ public class RestfulController {
         source = source.toLowerCase();
     	String keyOwner = null;
         try {
-        	keyOwner = APIKey.getAPIKeyOwner(apikey);
+        	keyOwner = apiKey.getAPIKeyOwner(apikey);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
         
-        if (!APIKey.canKeyOwnerEditSource(keyOwner, source)) {
+        if (!apiKey.canKeyOwnerEditSource(keyOwner, source)) {
             return new ResponseEntity<String>("That API key is not permitted for that source", HttpStatus.FORBIDDEN);
         }
     	
@@ -275,12 +277,12 @@ public class RestfulController {
         
     	String keyOwner = null;
         try {
-        	keyOwner = APIKey.getAPIKeyOwner(apikey);
+        	keyOwner = apiKey.getAPIKeyOwner(apikey);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
         
-        if (!APIKey.canKeyOwnerEditSource(keyOwner, source)) {
+        if (!apiKey.canKeyOwnerEditSource(keyOwner, source)) {
             return new ResponseEntity<String>("That API key is not permitted for that source", HttpStatus.FORBIDDEN);
         }
 

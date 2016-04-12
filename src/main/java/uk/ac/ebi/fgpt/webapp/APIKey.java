@@ -3,10 +3,12 @@ package uk.ac.ebi.fgpt.webapp;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import uk.ac.ebi.fgpt.sampletab.Accessioner;
 import uk.ac.ebi.fgpt.sampletab.Accessioner.AccessionUser;
 
+@Service
 public class APIKey {
 
 	@Autowired

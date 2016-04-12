@@ -51,6 +51,10 @@ public class SubmissionController {
         
     private Logger log = LoggerFactory.getLogger(getClass());
                     
+    
+    @Autowired
+    private APIKey apiKey;
+    
     @Autowired
     private Accessioner accessioner;
     
@@ -126,7 +130,7 @@ public class SubmissionController {
         
         String keyOwner;
         try { 
-            keyOwner = APIKey.getAPIKeyOwner(apikey);
+            keyOwner = apiKey.getAPIKeyOwner(apikey);
         } catch (IllegalArgumentException e) {
             //invalid API key, return errors
             return getErrorOutcome("Invalid API key ("+apikey+")", "Contact biosamples@ebi.ac.uk for assistance");
