@@ -14,7 +14,6 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.jdbc.datasource.lookup.JndiDataSourceLookup;
 import uk.ac.ebi.fgpt.sampletab.Accessioner;
 
-//@Configuration
 @SpringBootApplication
 public class Config {
     
@@ -23,19 +22,12 @@ public class Config {
 	public Config() {
 	}    
 	
-	@Bean(name = "accessionDataSource")
-    @Primary
-    public DataSource getAccesionDataSource() {
-
-		JndiDataSourceLookup dataSourceLookup = new JndiDataSourceLookup();
-		DataSource dataSource = dataSourceLookup.getDataSource("java:comp/env/jdbc/accessionDB");
-		return dataSource;
-    }
-	
     @Bean
     @Autowired
-    public Accessioner getAccessioner(@Qualifier("accessionDataSource") DataSource accessionDataSource) throws NamingException {
-    	return new Accessioner(accessionDataSource);
+    public Accessioner getAccessioner() throws NamingException {
+		JndiDataSourceLookup dataSourceLookup = new JndiDataSourceLookup();
+		DataSource dataSource = dataSourceLookup.getDataSource("java:comp/env/jdbc/accessionDB");
+    	return new Accessioner(dataSource);
     }
     
     @Bean
