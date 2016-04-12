@@ -12,8 +12,7 @@
 			<maxHistory>30</maxHistory>
 		</rollingPolicy>
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<pattern>%d{dd MMM yyyy - HH:mm:ss.SSS} %-5level [%thread]
-				%logger{36}: %msg%n</pattern>
+			<pattern>%d{dd MMM yyyy - HH:mm:ss.SSS} %-5level [%thread] %logger{36}: %msg%n</pattern>
 		</encoder>
 	</appender>
 
