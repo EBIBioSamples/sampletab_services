@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -253,6 +254,29 @@ public class SubmissionController {
             
             //assign accessions to sampletab object
             sampledata = accessioner.convert(sampledata);
+        
+            //before doing a writeout, check all objects are either owned by the submitter, or are references
+            for (SampleNode sample : sampledata.scd.getNodes(SampleNode.class)) {
+            	String sampleAcc = sample.getSampleAccession();
+            	//check if its a reference sample
+            	if (sample.getAttributes().size() == 0) {
+            		//reference sample, anyone is allowed to reference
+            	} else {
+            		//real sample, check with the owner
+            		Optional<String> owner = accessioner.getUserNameForAccession(sampleAcc);
+            		if (owner.isPresent() && !apiKey.canKeyOwnerEditSource(keyOwner, owner.get())) {
+                        return getErrorOutcome("Unable to update "+sampleAcc, "Insufficient priviliges");
+            		}
+            	}
+            }
+            for (GroupNode group : sampledata.scd.getNodes(GroupNode.class)) {
+            	String groupAcc = group.getGroupAccession();
+        		//real sample, check with the owner
+        		Optional<String> owner = accessioner.getUserNameForAccession(groupAcc);
+        		if (owner.isPresent() && !apiKey.canKeyOwnerEditSource(keyOwner, owner.get())) {
+                    return getErrorOutcome("Unable to update "+groupAcc, "Insufficient priviliges");
+        		}
+            }
         
             SampleTabWriter writer = null;
             try {
