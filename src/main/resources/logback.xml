@@ -8,7 +8,7 @@
 		<File>${catalina.base}/logs/${tomcat.hostname}/${logprefix}/SampleTab.log</File>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<!-- daily rollover -->
-			<fileNamePattern>${catalina.base}/logs/${tomcat.hostname}/${logprefix}/timeBasedlogFile.log.%d</fileNamePattern>
+			<fileNamePattern>${catalina.base}/logs/${tomcat.hostname}/${logprefix}/SampleTab.log.%d</fileNamePattern>
 			<maxHistory>30</maxHistory>
 		</rollingPolicy>
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
