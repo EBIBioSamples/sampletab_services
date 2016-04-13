@@ -264,6 +264,7 @@ public class SubmissionController {
             	} else {
             		//real sample, check with the owner
             		Optional<String> owner = accessioner.getUserNameForAccession(sampleAcc);
+            		log.info("Checking owner of "+sampleAcc+" - "+keyOwner+" vs "+owner.get());
             		if (owner.isPresent() && !apiKey.canKeyOwnerEditSource(keyOwner, owner.get())) {
                         return getErrorOutcome("Unable to update "+sampleAcc, "Insufficient priviliges");
             		}
@@ -273,6 +274,7 @@ public class SubmissionController {
             	String groupAcc = group.getGroupAccession();
         		//real sample, check with the owner
         		Optional<String> owner = accessioner.getUserNameForAccession(groupAcc);
+        		log.info("Checking owner of "+groupAcc+" - "+keyOwner+" vs "+owner.get());
         		if (owner.isPresent() && !apiKey.canKeyOwnerEditSource(keyOwner, owner.get())) {
                     return getErrorOutcome("Unable to update "+groupAcc, "Insufficient priviliges");
         		}
