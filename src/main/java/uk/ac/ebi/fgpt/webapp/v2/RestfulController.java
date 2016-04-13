@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,6 +35,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
+import uk.ac.ebi.arrayexpress2.sampletab.datamodel.MSI;
 import uk.ac.ebi.arrayexpress2.sampletab.datamodel.SampleData;
 import uk.ac.ebi.arrayexpress2.sampletab.datamodel.msi.TermSource;
 import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.SampleNode;
@@ -45,6 +48,8 @@ import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.MaterialAt
 import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.OrganismAttribute;
 import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.SexAttribute;
 import uk.ac.ebi.arrayexpress2.sampletab.renderer.SampleTabWriter;
+import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
+import uk.ac.ebi.fg.core_model.persistence.dao.hibernate.toplevel.AccessibleDAO;
 import uk.ac.ebi.fg.core_model.resources.Resources;
 import uk.ac.ebi.fgpt.sampletab.Accessioner;
 import uk.ac.ebi.fgpt.sampletab.utils.SampleTabUtils;
@@ -66,6 +71,9 @@ public class RestfulController {
     
     @Autowired
     private Accessioner accessioner;
+    
+    @Autowired
+    private RelationalDAO relationalDAO;
     
     @Value("${submissionpath}") //this is read from the context xml Parameter element
     private String submissionPath;	
@@ -109,7 +117,7 @@ public class RestfulController {
     		//TODO validate number of samples
     		//TODO validate sample accession
 	    	samples.get(0).setSampleAccession(accession);
-	        saveSampleData(sd);
+	        saveSampleData(sd, accession);
     	}
         
         return response;
@@ -202,13 +210,13 @@ public class RestfulController {
         	response = new ResponseEntity<String>(accession, HttpStatus.ACCEPTED);        
     	}
     	
-    	String submission = getSubmissionForSampleAccession(accession);
-		if (submission != null) {
-			sd.msi.submissionIdentifier = submission;
+    	Optional<String> submission = relationalDAO.getSubmissionIDForSampleAccession(accession);
+		if (submission.isPresent()) {
+			sd.msi.submissionIdentifier = submission.get();
 		}
     	
     	//save the output somewhere 
-        saveSampleData(sd);
+        saveSampleData(sd, accession);
         
         return response;
         
@@ -231,8 +239,12 @@ public class RestfulController {
 
     	if (sourceid.matches("SAM[NED]A?[0-9]+")) {
     		//its a biosamples ID
-	    	String submission = getSubmissionForSampleAccession(sourceid);
-			return new ResponseEntity<String>(submission, HttpStatus.ACCEPTED);
+	    	Optional<String> submissionId = relationalDAO.getSubmissionIDForSampleAccession(sourceid);
+	    	if (submissionId.isPresent()) {
+	    		return new ResponseEntity<String>(submissionId.get(), HttpStatus.ACCEPTED);
+	    	} else {
+	    		return new ResponseEntity<String>("sample "+sourceid+" is not recognized", HttpStatus.NOT_FOUND);
+	    	}
     	} else {
             return new ResponseEntity<String>("Only implmemented for BioSample accessions", HttpStatus.FORBIDDEN);
     	}
@@ -314,8 +326,8 @@ public class RestfulController {
 		}
 
 		//because this is in POST, it must be a new submission, therefore it won't have an existing submission
-    	String submission = getSubmissionForSampleAccession(accession);
-		if (submission != null) {
+    	Optional<String> submission = relationalDAO.getSubmissionIDForSampleAccession(accession);
+		if (submission.isPresent()) {
 			return new ResponseEntity<String>("POST must be a new submission, use PUT for updates", HttpStatus.BAD_REQUEST);
 		}
 		
@@ -326,10 +338,9 @@ public class RestfulController {
 		//TODO validate sample accession
     	samples.get(0).setSampleAccession(accession);
     	response = new ResponseEntity<String>(accession, HttpStatus.ACCEPTED);
-    	
-    	
+    	    	
     	//save the output somewhere 
-        saveSampleData(sd);
+        saveSampleData(sd, accession);
         
         return response;
     }
@@ -426,7 +437,11 @@ public class RestfulController {
         attr.setTermSourceID(termSource.getTermSourceID());
     }
     
-    private void saveSampleData(SampleData sd) throws IOException {
+    private void saveSampleData(SampleData sd, String sampleAcc) throws IOException {
+        //TODO check this is a sensible submission to be overwriting
+        Optional<Set<String>> sampleAccs = relationalDAO.getSubmissionSampleAccessions(sampleAcc);
+        
+        
         //need to assign a submission id
         if (sd.msi.submissionIdentifier == null) {
             int maxSubID = 0;
@@ -462,8 +477,7 @@ public class RestfulController {
 
         File subdir = new File(getSubmissionPath(), SampleTabUtils.getSubmissionDirFile(sd.msi.submissionIdentifier).toString());
         File outFile = new File(subdir, "sampletab.pre.txt");
-
-        //TODO check this is a sensible submission to be overwriting
+        
         
         SampleTabWriter writer = null;
         try {
@@ -493,19 +507,4 @@ public class RestfulController {
          */
     }
     
-    /**
-     * This is the method that uses Hibernate to connect to the database. 
-     * @param acc
-     * @return
-     */
-    public String getSubmissionForSampleAccession(String acc) {        
-        EntityManager em = Resources.getInstance().getEntityManagerFactory().createEntityManager();
-        TypedQuery<String> q = em.createQuery("SELECT msi.acc FROM BioSample bs JOIN bs.MSIs AS msi WHERE bs.acc = '"+acc+"'", String.class);
-        try {
-        	return q.getSingleResult();
-        } catch (NoResultException e) {
-        	//there was no match, return null
-        	return null;
-        }
-    }
 }
