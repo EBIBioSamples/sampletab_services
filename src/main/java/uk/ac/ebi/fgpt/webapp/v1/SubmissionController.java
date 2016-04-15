@@ -107,7 +107,7 @@ public class SubmissionController {
         
     }
     
-    private static Outcome getErrorOutcome(String message, String comment) {
+    protected static Outcome getErrorOutcome(String message, String comment) {
         Outcome o = new Outcome();
         List<Map<String,String>> errorList = new ArrayList<Map<String,String>>();
         Map<String, String> errorMap = new HashMap<String, String>();
