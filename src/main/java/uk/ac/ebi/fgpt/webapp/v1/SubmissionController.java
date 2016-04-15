@@ -253,7 +253,7 @@ public class SubmissionController {
             }
             
             //assign accessions to sampletab object
-            sampledata = accessioner.convert(sampledata);
+            sampledata = accessioner.convert(sampledata, keyOwner);
         
             //before doing a writeout, check all objects are either owned by the submitter, or are references
             for (SampleNode sample : sampledata.scd.getNodes(SampleNode.class)) {

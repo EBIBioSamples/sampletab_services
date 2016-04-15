@@ -90,6 +90,11 @@ public class AccessionerController {
         
     @RequestMapping(value = "/v1/json/ac", method = RequestMethod.POST)
     public @ResponseBody Outcome doAccession(@RequestBody SampleTabRequest sampletab) {
+    	
+    	
+    	//currently broken, throw exception to avoid use 
+    	throw new IllegalArgumentException("accessioning needs to be updated to accept an API key");
+    	/*
         //setup parser to listen for errors
         SampleTabParser<SampleData> parser = new SampleTabParser<SampleData>();
         
@@ -118,7 +123,7 @@ public class AccessionerController {
             }
 
             //assign accessions to sampletab object
-            sampledata = accessioner.convert(sampledata);
+            sampledata = accessioner.convert(sampledata, null);
             
             //return the accessioned file, and any generated errors            
             outcome = new Outcome(sampledata, errorItems);
@@ -149,5 +154,6 @@ public class AccessionerController {
             outcome = new Outcome(null, errors);
         } 
         return outcome;
+        */
     }
 }
