@@ -96,12 +96,14 @@ public class AccessionerController {
     public @ResponseBody Outcome doAccession(@RequestBody SampleTabRequest sampletab, String apikey) {
     	    	
 
-        String keyOwner;
-        try { 
-            keyOwner = apiKey.getAPIKeyOwner(apikey);
-        } catch (IllegalArgumentException e) {
-            //invalid API key, return errors
-            return SubmissionController.getErrorOutcome("Invalid API key ("+apikey+")", "Contact biosamples@ebi.ac.uk for assistance");
+        String keyOwner = null;
+        if (apikey != null) {
+	        try { 
+	            keyOwner = apiKey.getAPIKeyOwner(apikey);
+	        } catch (IllegalArgumentException e) {
+	            //invalid API key, return errors
+	            return SubmissionController.getErrorOutcome("Invalid API key ("+apikey+")", "Contact biosamples@ebi.ac.uk for assistance");
+	        }
         }
     	
     	
@@ -133,7 +135,12 @@ public class AccessionerController {
             }
 
             //assign accessions to sampletab object
-            sampledata = accessioner.convert(sampledata, keyOwner);
+            if (keyOwner != null) {
+            	sampledata = accessioner.convert(sampledata, keyOwner);
+            } else {
+            	//fallback to deprecated version
+            	sampledata = accessioner.convertSubmission(sampledata);
+            }
             
             //return the accessioned file, and any generated errors            
             outcome = new Outcome(sampledata, errorItems);
