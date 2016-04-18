@@ -440,9 +440,21 @@ public class RestfulController {
     private void saveSampleData(SampleData sd, String sampleAcc) throws IOException {
         //TODO check this is a sensible submission to be overwriting
         Optional<Set<String>> sampleAccs = relationalDAO.getSubmissionSampleAccessions(sampleAcc);
+        if (sampleAccs.isPresent()) {
+        	//if there is a previous submission, must be only this sample in it
+        	if (sampleAccs.get().size() != 1) {
+        		throw new IllegalStateException("Cannot update a SampleTab submission via XML");
+        	}
+        	
+        	String oldSampleAccession = sampleAccs.get().iterator().next();
+        	if (!oldSampleAccession.equals(sampleAcc)) {
+        		//should never reach here, but just in case...
+        		throw new IllegalStateException("Submission owns a different sample ("+oldSampleAccession+" instead of "+sampleAcc+")");
+        	}
+        }
         
         
-        //need to assign a submission id
+        //may need to assign a submission id
         if (sd.msi.submissionIdentifier == null) {
             int maxSubID = 0;
             Pattern pattern = Pattern.compile("^GSB-([0-9]+)$");
