@@ -14,11 +14,13 @@ function handleAccessionFileSelect(evt) {
 	filereader.onload = (function(e) {
 		//convert the string into a JSON array of arrays
 		var sampletabstring = stringToJSON2DArray(e.target.result)
+		//retrieve the API key to use
+		var apikey = document.getElementById('apikeyinput').value;
 		
 		//do the ajax call
 	    $.ajax({
            type:           'POST',
-           url:            'api/v1/json/ac',
+           url:            'api/v1/json/ac?apikey='+apikey, //TODO do this better
            contentType:    'application/json',
            data:           sampletabstring,
            processData:    false,

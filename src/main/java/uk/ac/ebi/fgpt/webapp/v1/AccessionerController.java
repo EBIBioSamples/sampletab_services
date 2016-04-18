@@ -28,6 +28,7 @@ import uk.ac.ebi.arrayexpress2.magetab.listener.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.sampletab.datamodel.SampleData;
 import uk.ac.ebi.arrayexpress2.sampletab.parser.SampleTabParser;
 import uk.ac.ebi.fgpt.sampletab.Accessioner;
+import uk.ac.ebi.fgpt.webapp.APIKey;
 
 /**
  * A spring controller that returns an accessioned version of a POSTed SampleTab
@@ -38,6 +39,9 @@ import uk.ac.ebi.fgpt.sampletab.Accessioner;
 @Controller
 @RequestMapping
 public class AccessionerController {
+
+    @Autowired
+    private APIKey apiKey;
     
 	@Autowired
 	private Accessioner accessioner;
@@ -81,15 +85,28 @@ public class AccessionerController {
         }
         
     }
-        
+                
     //old URL mapping for backwards compatability
     @RequestMapping(value = "/jsac", method = RequestMethod.POST) 
-    public @ResponseBody Outcome doAccessionOld(@RequestBody SampleTabRequest sampletab) {
-        return doAccession(sampletab);
+    public @ResponseBody Outcome doAccessionOld(@RequestBody SampleTabRequest sampletab, String apikey) {
+        return doAccession(sampletab, apikey);
     }
-        
+    
     @RequestMapping(value = "/v1/json/ac", method = RequestMethod.POST)
-    public @ResponseBody Outcome doAccession(@RequestBody SampleTabRequest sampletab) {
+    public @ResponseBody Outcome doAccession(@RequestBody SampleTabRequest sampletab, String apikey) {
+    	    	
+
+        String keyOwner = null;
+        if (apikey != null) {
+	        try { 
+	            keyOwner = apiKey.getAPIKeyOwner(apikey);
+	        } catch (IllegalArgumentException e) {
+	            //invalid API key, return errors
+	            return SubmissionController.getErrorOutcome("Invalid API key ("+apikey+")", "Contact biosamples@ebi.ac.uk for assistance");
+	        }
+        }
+    	
+    	
         //setup parser to listen for errors
         SampleTabParser<SampleData> parser = new SampleTabParser<SampleData>();
         
@@ -118,7 +135,12 @@ public class AccessionerController {
             }
 
             //assign accessions to sampletab object
-            sampledata = accessioner.convert(sampledata);
+            if (keyOwner != null) {
+            	sampledata = accessioner.convert(sampledata, keyOwner);
+            } else {
+            	//fallback to deprecated version
+            	sampledata = accessioner.convertSubmission(sampledata);
+            }
             
             //return the accessioned file, and any generated errors            
             outcome = new Outcome(sampledata, errorItems);
