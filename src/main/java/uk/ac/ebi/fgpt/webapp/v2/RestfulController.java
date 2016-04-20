@@ -4,26 +4,16 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.TypedQuery;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -35,488 +25,520 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
-import uk.ac.ebi.arrayexpress2.sampletab.datamodel.MSI;
 import uk.ac.ebi.arrayexpress2.sampletab.datamodel.SampleData;
-import uk.ac.ebi.arrayexpress2.sampletab.datamodel.msi.TermSource;
+import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.GroupNode;
 import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.SampleNode;
-import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.AbstractNodeAttributeOntology;
-import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.CharacteristicAttribute;
-import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.CommentAttribute;
-import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.DatabaseAttribute;
-import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.DerivedFromAttribute;
-import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.MaterialAttribute;
-import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.OrganismAttribute;
-import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.SexAttribute;
 import uk.ac.ebi.arrayexpress2.sampletab.renderer.SampleTabWriter;
-import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
-import uk.ac.ebi.fg.core_model.persistence.dao.hibernate.toplevel.AccessibleDAO;
-import uk.ac.ebi.fg.core_model.resources.Resources;
 import uk.ac.ebi.fgpt.sampletab.Accessioner;
 import uk.ac.ebi.fgpt.sampletab.utils.SampleTabUtils;
+import uk.ac.ebi.fgpt.sampletab.utils.samplegroupexport.BioSampleGroupType;
 import uk.ac.ebi.fgpt.sampletab.utils.samplegroupexport.BioSampleType;
-import uk.ac.ebi.fgpt.sampletab.utils.samplegroupexport.DatabaseType;
-import uk.ac.ebi.fgpt.sampletab.utils.samplegroupexport.PropertyType;
-import uk.ac.ebi.fgpt.sampletab.utils.samplegroupexport.QualifiedValueType;
-import uk.ac.ebi.fgpt.sampletab.utils.samplegroupexport.TermSourceREFType;
 import uk.ac.ebi.fgpt.webapp.APIKey;
 
 @Controller
 @RequestMapping("/v2")
 public class RestfulController {
-    
-    private Logger log = LoggerFactory.getLogger(getClass());
 
-    @Autowired
-    private APIKey apiKey;
-    
-    @Autowired
-    private Accessioner accessioner;
-    
-    @Autowired
-    private RelationalDAO relationalDAO;
-    
-    @Value("${submissionpath}") //this is read from the context xml Parameter element
-    private String submissionPath;	
+	private Logger log = LoggerFactory.getLogger(getClass());
+
+	@Autowired
+	private APIKey apiKey;
+
+	@Autowired
+	private Accessioner accessioner;
+
+	@Autowired
+	private RelationalDAO relationalDAO;
 	
-    //2014-05-20T23:00:00+00:00
-    private DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'+00:00'", Locale.ENGLISH);
-    
-    public RestfulController()  {
-        
-    }
-    
-    protected Accessioner getAccessioner() {
-        return accessioner;
-    }
+	@Autowired
+	private BioSampleConverter bioSampleConverter;
 
-    protected File getSubmissionPath() {
-    	if (submissionPath == null) {
-    		throw new RuntimeException("Expected submissionpath to be non-null");
-    	}
-    	log.info("submissionpath is "+submissionPath);
-    	File path = new File(submissionPath);
-    	path = path.getAbsoluteFile();
-    	return path;
-    }
-    
-    
-    @RequestMapping(value="/source/{source}/sample", method=RequestMethod.POST, produces="text/plain", consumes="application/xml")
-    public ResponseEntity<String> saveSourceSampleNew(@PathVariable String source, @RequestParam String apikey, @RequestBody BioSampleType sample) throws ParseException, IOException  {
-        //ensure source is case insensitive
-        source = source.toLowerCase();
-        
-    	ResponseEntity<String> response = accessionSourceSampleNew(source, apikey);
-        
-    	if (response.getStatusCode() == HttpStatus.ACCEPTED) {
-	        //a request body was provided, so save it somewhere
-	    	//after adding the accession
-	    	SampleData sd = handleBioSampleType(sample);
-	    	String accession = response.getBody();
-	    	List<SampleNode> samples = new ArrayList<SampleNode>();
-			samples.addAll(sd.scd.getNodes(SampleNode.class));
-    		//TODO validate number of samples
-    		//TODO validate sample accession
-	    	samples.get(0).setSampleAccession(accession);
-	        saveSampleData(sd, accession);
-    	}
-        
-        return response;
-    }
-    
-    @RequestMapping(value="/source/{source}/sample", method=RequestMethod.POST, produces="text/plain")
-    public ResponseEntity<String> accessionSourceSampleNew(@PathVariable String source, @RequestParam String apikey)  {
-        //ensure source is case insensitive
-        source = source.toLowerCase();
-        
-    	String keyOwner = null;
-        try {
-        	keyOwner = apiKey.getAPIKeyOwner(apikey);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
-        }
-        
-        if (!apiKey.canKeyOwnerEditSource(keyOwner, source)) {
-            return new ResponseEntity<String>("apikey is not permitted for source", HttpStatus.FORBIDDEN);
-        }
-        
-        String newAccession = null;
-        try {
-        	newAccession = getAccessioner().singleAssaySample(source);
-        } catch (RecoverableDataAccessException e) {
-        	newAccession = getAccessioner().singleAssaySample(source);
-        }
-        ResponseEntity<String> response = new ResponseEntity<String>(newAccession, HttpStatus.ACCEPTED);        
-        
-        return response;
-    }
-    
-    
+	@Value("${submissionpath}") // this is read from the context xml Parameter
+								// element
+	private String submissionPath;
 
-    @RequestMapping(value="/source/{source}/sample/{sourceid}", method=RequestMethod.PUT, produces="text/plain", consumes="application/xml")
-    public @ResponseBody ResponseEntity<String> saveUpdate(@PathVariable String source, @PathVariable String sourceid, @RequestParam String apikey, 
-    		@RequestBody BioSampleType sample) throws ParseException, IOException {
-        //ensure source is case insensitive
-        source = source.toLowerCase();
-        
-    	String keyOwner = null;
-        try {
-        	keyOwner = apiKey.getAPIKeyOwner(apikey);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
-        }
-        
-        if (!apiKey.canKeyOwnerEditSource(keyOwner, source)) {
-            return new ResponseEntity<String>("That API key is not permitted for that source", HttpStatus.FORBIDDEN);
-        }
-                
-        //a request body was provided, so handle it
-    	//after adding the accession
-    	SampleData sd = handleBioSampleType(sample);
+	public RestfulController() {
+
+	}
+
+	protected File getSubmissionPath() {
+		if (submissionPath == null) {
+			throw new RuntimeException("Expected submissionpath to be non-null");
+		}
+		log.info("submissionpath is " + submissionPath);
+		File path = new File(submissionPath);
+		path = path.getAbsoluteFile();
+		return path;
+	}
+
+	@RequestMapping(value = "/source/{source}/sample", method = RequestMethod.POST, produces = "text/plain")
+	public ResponseEntity<String> accessionSourceSampleNew(@PathVariable String source, @RequestParam String apikey) {
+		return accessionSourceSample(source, UUID.randomUUID().toString(), apikey);
+	}
+
+	@RequestMapping(value = "/source/{source}/sample", method = RequestMethod.POST, produces = "text/plain", consumes = "application/xml")
+	public ResponseEntity<String> saveSourceSampleNew(@PathVariable String source, @RequestParam String apikey,
+			@RequestBody BioSampleType sample) throws ParseException, IOException {
+		return saveSourceSample(source, UUID.randomUUID().toString(), apikey, sample);
+	}
+
+	@RequestMapping(value = "/source/{source}/sample/{sourceid}", method = RequestMethod.POST, produces = "text/plain")
+	public @ResponseBody ResponseEntity<String> accessionSourceSample(@PathVariable String source,
+			@PathVariable String sourceid, @RequestParam String apikey) {
+		// ensure source is case insensitive
+		source = source.toLowerCase();
+		
+		String keyOwner = null;
+		try {
+			keyOwner = apiKey.getAPIKeyOwner(apikey);
+		} catch (IllegalArgumentException e) {
+			return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
+		}
+		if (!apiKey.canKeyOwnerEditSource(keyOwner, source)) {
+			return new ResponseEntity<String>("That API key is not permitted for that source", HttpStatus.FORBIDDEN);
+		}
+
+		// reject if its a biosamples ID
+		if (sourceid.matches("SAM[NED]A?[0-9]+")) {
+			return new ResponseEntity<String>(
+					"POST must be a new submission, use PUT for updates",
+					HttpStatus.BAD_REQUEST);
+		} 
+		
+		// reject if already acessioned (POST is a one-time operation)
+		if (accessioner.testAssaySample(sourceid, source)) {
+			return new ResponseEntity<String>("POST must be a new submission, use PUT for updates",
+					HttpStatus.BAD_REQUEST);
+		}
+		
+		String accession = accessioner.singleAssaySample(sourceid, source);
+
+		// because this is in POST, it must be a new submission, 
+		// therefore it can't have an existing submission
+		//this should never be true, but better safe than sorry....
+		Optional<String> submission = relationalDAO.getSubmissionIDForSampleAccession(accession);
+		if (submission.isPresent()) {
+			return new ResponseEntity<String>("POST must be a new submission, use PUT for updates",
+					HttpStatus.BAD_REQUEST);
+		}
+		
+		return new ResponseEntity<String>(accession, HttpStatus.ACCEPTED);
+	}
+
+	@RequestMapping(value = "/source/{source}/sample/{sourceid}", method = RequestMethod.POST, produces = "text/plain", consumes = "application/xml")
+	public @ResponseBody ResponseEntity<String> saveSourceSample(@PathVariable String source,
+			@PathVariable String sourceid, @RequestParam String apikey, @RequestBody BioSampleType sample)
+					throws ParseException, IOException {
+		// ensure source is case insensitive
+		source = source.toLowerCase();
+
+		ResponseEntity<String> response = accessionSourceSample(source, sourceid, apikey);
+
+		if (response.getStatusCode() == HttpStatus.ACCEPTED) {
+			// a request body was provided, so save it somewhere
+			// after adding the accession
+			SampleData sd = bioSampleConverter.handleBioSampleType(sample);
+			String accession = response.getBody();
+			sd.scd.getNodes(SampleNode.class).iterator().next().setSampleAccession(accession);
+			
+			saveSampleData(sd, accession);			
+		}
+
+		return response;
+	}
+
+	@RequestMapping(value = "/source/{source}/sample/{sourceid}", method = RequestMethod.PUT, produces = "text/plain", consumes = "application/xml")
+	public @ResponseBody ResponseEntity<String> saveUpdate(@PathVariable String source, @PathVariable String sourceid,
+			@RequestParam String apikey, @RequestBody BioSampleType sample) throws ParseException, IOException {
+		// ensure source is case insensitive
+		source = source.toLowerCase();
+
+		String keyOwner = null;
+		try {
+			keyOwner = apiKey.getAPIKeyOwner(apikey);
+		} catch (IllegalArgumentException e) {
+			return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
+		}
+
+		if (!apiKey.canKeyOwnerEditSource(keyOwner, source)) {
+			return new ResponseEntity<String>("That API key is not permitted for that source", HttpStatus.FORBIDDEN);
+		}
+
+		// a request body was provided, so handle it
+		// after adding the accession
+		SampleData sd = bioSampleConverter.handleBioSampleType(sample);
 		SampleNode sampleNode = sd.scd.getNodes(SampleNode.class).iterator().next();
-    	ResponseEntity<String> response;
-    	String accession = null;
-    	
-    	//validate number of samples is not needed, since type specifys one BioSample xml element
-    	
-    	
-    	if (sourceid.matches("SAM[NED]A?[0-9]+")) {
-    		//its a biosamples ID
-    		//check content accession matches address accession
-    		if (sampleNode.getSampleAccession() == null || !sampleNode.getSampleAccession().equals(sourceid)) {
-    			return new ResponseEntity<String>("Sample Accession in XML must match sourceid in URL", HttpStatus.CONFLICT);
-    		}
-    		//accept this submission
-    		accession = sourceid;
-        	response = new ResponseEntity<String>(accession, HttpStatus.ACCEPTED);
-    	} else {
-    		//its not a biosamples id, but a source id
-    		try {
-    			accession = getAccessioner().retrieveAssaySample(sourceid, source);
-    		} catch (RecoverableDataAccessException e) {
-    			//if it was a recoverable error, try again
-    			accession = getAccessioner().retrieveAssaySample(sourceid, source);
-    		}
-    		
-    		
-            //reject if not already accessioned (PUT is an update)
-    		if (accession == null) {
-    			return new ResponseEntity<String>("PUT must be an update, use POST for new submissions", HttpStatus.BAD_REQUEST);
-    		}
-    		//check content accession matches address accession
-    		if (sampleNode.getSampleAccession() != null && !sampleNode.getSampleAccession().equals(sourceid)) {
-    			return new ResponseEntity<String>("Sample accession in XML must match previous accession", HttpStatus.CONFLICT);
-    		}
-    		//accept this submission
-        	response = new ResponseEntity<String>(accession, HttpStatus.ACCEPTED);        
-    	}
-    	
-    	Optional<String> submission = relationalDAO.getSubmissionIDForSampleAccession(accession);
+		ResponseEntity<String> response;
+		String accession;
+
+		// validate number of samples is not needed, since type specifys one
+		// BioSample xml element
+
+		if (sourceid.matches("SAM[NED]A?[0-9]+")) {
+			// its a biosamples ID
+			// check content accession matches address accession
+			if (sampleNode.getSampleAccession() == null || !sampleNode.getSampleAccession().equals(sourceid)) {
+				return new ResponseEntity<String>("Sample Accession in XML must match sourceid in URL",
+						HttpStatus.CONFLICT);
+			}
+			// accept this submission
+			accession = sourceid;
+			response = new ResponseEntity<String>(accession, HttpStatus.ACCEPTED);
+		} else {
+			// its not a biosamples id, but a source id
+			accession = accessioner.retrieveAssaySample(sourceid, source);
+
+			// reject if not already accessioned (PUT is an update)
+			if (accession == null) {
+				return new ResponseEntity<String>("PUT must be an update, use POST for new submissions",
+						HttpStatus.BAD_REQUEST);
+			}
+			// check content accession matches address accession
+			if (sampleNode.getSampleAccession() != null && !sampleNode.getSampleAccession().equals(sourceid)) {
+				return new ResponseEntity<String>("Sample accession in XML must match previous accession",
+						HttpStatus.CONFLICT);
+			}
+			// accept this submission
+			response = new ResponseEntity<String>(accession, HttpStatus.ACCEPTED);
+		}
+
+		//get the existing submission ID
+		Optional<String> submission = relationalDAO.getSubmissionIDForSampleAccession(accession);
 		if (submission.isPresent()) {
 			sd.msi.submissionIdentifier = submission.get();
+		} else {
+			//no existing submission ID, refer them to post
+			return new ResponseEntity<String>("PUT must be an update, use POST for new submissions",
+					HttpStatus.BAD_REQUEST);
 		}
-    	
-    	//save the output somewhere 
-        saveSampleData(sd, accession);
-        
-        return response;
-        
-    }
 
-    @RequestMapping(value="/source/{source}/sample/{sourceid}/submission", method=RequestMethod.GET, produces="text/plain")
-    public @ResponseBody ResponseEntity<String> getSubmissionOfSample(@PathVariable String source, @PathVariable String sourceid, @RequestParam String apikey) {
-    	//ensure source is case insensitive
-        source = source.toLowerCase();
-    	String keyOwner = null;
-        try {
-        	keyOwner = apiKey.getAPIKeyOwner(apikey);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
-        }
-        
-        if (!apiKey.canKeyOwnerEditSource(keyOwner, source)) {
-            return new ResponseEntity<String>("That API key is not permitted for that source", HttpStatus.FORBIDDEN);
-        }
+		// save the output somewhere
+		saveSampleData(sd, accession);
 
-    	if (sourceid.matches("SAM[NED]A?[0-9]+")) {
-    		//its a biosamples ID
-	    	Optional<String> submissionId = relationalDAO.getSubmissionIDForSampleAccession(sourceid);
-	    	if (submissionId.isPresent()) {
-	    		return new ResponseEntity<String>(submissionId.get(), HttpStatus.ACCEPTED);
-	    	} else {
-	    		return new ResponseEntity<String>("sample "+sourceid+" is not recognized", HttpStatus.NOT_FOUND);
-	    	}
-    	} else {
-            return new ResponseEntity<String>("Only implmemented for BioSample accessions", HttpStatus.FORBIDDEN);
-    	}
-    }
+		return response;
 
-    @RequestMapping(value="/source/{source}/sample/{sourceid}", method=RequestMethod.POST, produces="text/plain")
-    public @ResponseBody ResponseEntity<String> accessionSourceSample(@PathVariable String source, @PathVariable String sourceid, @RequestParam String apikey) {
-        //ensure source is case insensitive
-        source = source.toLowerCase();
-    	String keyOwner = null;
-        try {
-        	keyOwner = apiKey.getAPIKeyOwner(apikey);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
-        }
-        
-        if (!apiKey.canKeyOwnerEditSource(keyOwner, source)) {
-            return new ResponseEntity<String>("That API key is not permitted for that source", HttpStatus.FORBIDDEN);
-        }
-    	
-    	if (sourceid.matches("SAM[NED]A?[0-9]+")) {
-    		//its a biosamples ID
-    		return new ResponseEntity<String>("Do not request a new BioSamples accession for an existing BioSamples accession", HttpStatus.BAD_REQUEST);
-    	} else {
-    		String accession = null;
-    		try {
-    			accession = getAccessioner().singleAssaySample(sourceid, source);
-    		} catch (RecoverableDataAccessException e) {
-    			accession = getAccessioner().singleAssaySample(sourceid, source);
-    		}
-    		return new ResponseEntity<String>(accession, HttpStatus.ACCEPTED);
-    	}
-    }
+	}
 
-
-    @RequestMapping(value="/source/{source}/sample/{sourceid}", method=RequestMethod.POST, produces="text/plain", consumes="application/xml")
-    public @ResponseBody ResponseEntity<String> saveSourceSample(@PathVariable String source, @PathVariable String sourceid, 
-    		@RequestParam String apikey, @RequestBody BioSampleType sample) throws ParseException, IOException {
-        //ensure source is case insensitive
-        source = source.toLowerCase();
-        
-        
-    	String keyOwner = null;
-        try {
-        	keyOwner = apiKey.getAPIKeyOwner(apikey);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
-        }
-        
-        if (!apiKey.canKeyOwnerEditSource(keyOwner, source)) {
-            return new ResponseEntity<String>("That API key is not permitted for that source", HttpStatus.FORBIDDEN);
-        }
-
-        //a request body was provided, so handle it
-    	//after adding the accession
-    	SampleData sd = handleBioSampleType(sample);
-    	ResponseEntity<String> response;
-    	
-    	if (sourceid.matches("SAM[NED]A?[0-9]+")) {
-    		//its a biosamples ID
-    		return new ResponseEntity<String>("Do not request a new BioSamples accession for an existing BioSamples accession", HttpStatus.BAD_REQUEST);
-    	}
-        //reject if already acessioned (POST is a one-time operation)
-    	Boolean isAccessioned = null;
-    	try {
-    		isAccessioned = getAccessioner().testAssaySample(sourceid, source);
-    	} catch (RecoverableDataAccessException e) {
-    		isAccessioned = getAccessioner().testAssaySample(sourceid, source);
-    	}
-    	
-    	if (isAccessioned) {
-			return new ResponseEntity<String>("POST must be a new submission, use PUT for updates", HttpStatus.BAD_REQUEST);
-    	}
-		String accession = null;
+	@RequestMapping(value = "/source/{source}/sample/{sourceid}/submission", method = RequestMethod.GET, produces = "text/plain")
+	public @ResponseBody ResponseEntity<String> getSubmissionOfSample(@PathVariable String source,
+			@PathVariable String sourceid, @RequestParam String apikey) {
+		// ensure source is case insensitive
+		source = source.toLowerCase();
+		String keyOwner = null;
 		try {
-			accession = getAccessioner().singleAssaySample(sourceid, source);
-		} catch (RecoverableDataAccessException e) {
-			accession = getAccessioner().singleAssaySample(sourceid, source);
+			keyOwner = apiKey.getAPIKeyOwner(apikey);
+		} catch (IllegalArgumentException e) {
+			return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
 		}
 
-		//because this is in POST, it must be a new submission, therefore it won't have an existing submission
-    	Optional<String> submission = relationalDAO.getSubmissionIDForSampleAccession(accession);
-		if (submission.isPresent()) {
-			return new ResponseEntity<String>("POST must be a new submission, use PUT for updates", HttpStatus.BAD_REQUEST);
+		if (!apiKey.canKeyOwnerEditSource(keyOwner, source)) {
+			return new ResponseEntity<String>("That API key is not permitted for that source", HttpStatus.FORBIDDEN);
 		}
-		
-		
-    	List<SampleNode> samples = new ArrayList<SampleNode>();
-		samples.addAll(sd.scd.getNodes(SampleNode.class));
-		//TODO validate number of samples
-		//TODO validate sample accession
-    	samples.get(0).setSampleAccession(accession);
-    	response = new ResponseEntity<String>(accession, HttpStatus.ACCEPTED);
-    	    	
-    	//save the output somewhere 
-        saveSampleData(sd, accession);
-        
-        return response;
-    }
-    
-    
-    private SampleData handleBioSampleType(BioSampleType xmlSample) throws ParseException {
-        // take the JaxB created object and produce a more typical SampleData storage
-        SampleData sd = new SampleData();
-        SampleNode sample = new SampleNode();
-        
-        for (PropertyType property : xmlSample.getProperty()) {
-            for (QualifiedValueType value : property.getQualifiedValue()) {
-                if (property.getClazz().equals("Sample Name")) {
-                    sample.setNodeName(value.getValue());
-                } else if (property.getClazz().equals("Sample Description")) {
-                    sample.setSampleDescription(value.getValue());
-                } else if (property.getClazz().equals("Sample Accession")) {
-                    sample.setSampleAccession(value.getValue());
-                } else if (property.getClazz().equals("Material")) {
-                    AbstractNodeAttributeOntology attr = new MaterialAttribute(value.getValue());
-                    sample.addAttribute(attr); 
-                    if (value.getTermSourceREF() != null) {
-                        handleTermSource(value.getTermSourceREF(), attr, sd);
-                    }
-                } else if (property.getClazz().equals("Sex")) {
-                    AbstractNodeAttributeOntology attr = new SexAttribute(value.getValue());
-                    sample.addAttribute(attr); 
-                    if (value.getTermSourceREF() != null) {
-                        handleTermSource(value.getTermSourceREF(), attr, sd);
-                    }
-                } else if (property.getClazz().equals("Organism")) {
-                    AbstractNodeAttributeOntology attr = new OrganismAttribute(value.getValue());
-                    sample.addAttribute(attr); 
-                    if (value.getTermSourceREF() != null) {
-                        handleTermSource(value.getTermSourceREF(), attr, sd);
-                    }
-                } else if (property.isCharacteristic()) {
-                    CharacteristicAttribute attr = new CharacteristicAttribute(property.getClazz(), value.getValue());
-                    sample.addAttribute(attr);
-                    //TODO unit
-                    if (value.getTermSourceREF() != null) {
-                        handleTermSource(value.getTermSourceREF(), attr, sd);
-                    }
-                } else if (property.isComment()) {
-                    CommentAttribute attr = new CommentAttribute(property.getClazz(), value.getValue());
-                    sample.addAttribute(attr);
-                    //TODO unit
-                    if (value.getTermSourceREF() != null) {
-                        handleTermSource(value.getTermSourceREF(), attr, sd);
-                    }
-                }
-            }
-        }
-        for (String derived : xmlSample.getDerivedFrom()) {
-            sample.addAttribute(new DerivedFromAttribute(derived));
-        }
-        for (DatabaseType db : xmlSample.getDatabase()) {
-            sample.addAttribute(new DatabaseAttribute(db.getName(), db.getID(), db.getURI()));
-        } 
-        
-        if (xmlSample.getId() != null && xmlSample.getId().matches("SAM(N|E|D)A?[0-9]*")) {
-        	sample.setSampleAccession(xmlSample.getId());
-        }
-        
-        //add the sample to the scd section after it has been fully constructed
-        sd.scd.addNode(sample);
-        
-        if (xmlSample.getSubmissionReleaseDate() != null ){
-        	Date releaseDate = null;
-        	try {
-        		releaseDate = dateFormat.parse(xmlSample.getSubmissionReleaseDate());
-        	} catch (java.text.ParseException e) {
-        		//do nothing
+
+		if (sourceid.matches("SAM[NED]A?[0-9]+")) {
+			// its a biosamples ID
+			Optional<String> submissionId = relationalDAO.getSubmissionIDForSampleAccession(sourceid);
+			if (submissionId.isPresent()) {
+				return new ResponseEntity<String>(submissionId.get(), HttpStatus.ACCEPTED);
+			} else {
+				return new ResponseEntity<String>("sample " + sourceid + " is not recognized", HttpStatus.NOT_FOUND);
 			}
-        	if (releaseDate != null) {
-        		sd.msi.submissionReleaseDate = releaseDate;
-        	}
-        }
-        //update date is taken to be when it is received by restful service
-        //even if it might have a different update date from upstream, receiving it is a newer update
-        
-        return sd;
-    }
-    
-    private void handleTermSource(TermSourceREFType termSource, AbstractNodeAttributeOntology attr, SampleData sd) {
-        if (termSource == null) throw new IllegalArgumentException("termSource cannot be null");
-        if (attr == null) throw new IllegalArgumentException("termSource cannot be null");
-        if (sd == null) throw new IllegalArgumentException("termSource cannot be null");
-        
-        if (termSource.getName() != null) {
-            TermSource ts = new TermSource(termSource.getName(), termSource.getURI(), termSource.getVersion());
-            attr.setTermSourceREF(sd.msi.getOrAddTermSource(ts));
-        }
-        attr.setTermSourceID(termSource.getTermSourceID());
-    }
-    
-    private void saveSampleData(SampleData sd, String sampleAcc) throws IOException {
-        //TODO check this is a sensible submission to be overwriting
-        Optional<Set<String>> sampleAccs = relationalDAO.getSubmissionSampleAccessions(sampleAcc);
-        if (sampleAccs.isPresent()) {
-        	//if there is a previous submission, must be only this sample in it
-        	if (sampleAccs.get().size() != 1) {
-        		throw new IllegalStateException("Cannot update a SampleTab submission via XML");
-        	}
-        	
-        	String oldSampleAccession = sampleAccs.get().iterator().next();
-        	if (!oldSampleAccession.equals(sampleAcc)) {
-        		//should never reach here, but just in case...
-        		throw new IllegalStateException("Submission owns a different sample ("+oldSampleAccession+" instead of "+sampleAcc+")");
-        	}
-        }
-        
-        
-        //may need to assign a submission id
-        if (sd.msi.submissionIdentifier == null) {
-            int maxSubID = 0;
-            Pattern pattern = Pattern.compile("^GSB-([0-9]+)$");
-            File pathSubdir = new File(getSubmissionPath(), "GSB");
-            for (File subdir : pathSubdir.listFiles()) {
-                if (!subdir.isDirectory()) {
-                    continue;
-                } else {
-                    log.trace("Looking at subid "+subdir.getName()+" with pattern "+pattern.pattern());
-                    Matcher match = pattern.matcher(subdir.getName());
-                    if (match.matches()) {
-                        log.trace("Found match with "+match.groupCount()+" groups "+match.group(1));
-                        Integer subid = new Integer(match.group(1));
-                        if (subid > maxSubID) {
-                            maxSubID = subid;
-                        }
-                    }
-                }
-            }
-            maxSubID++;
-            File subDir = new File(getSubmissionPath(), SampleTabUtils.getSubmissionDirFile("GSB-"+maxSubID).toString());
-            if (!subDir.mkdirs()) {
-                throw new IOException("Unable to create submission directory");
-            }
-            //can't do linux-specific group writing, so make all writable.
-            //won't be too bad, since the parent directory should not be world writable
-            subDir.setWritable(true, false);
-            
-            sd.msi.submissionIdentifier = "GSB-"+maxSubID;
-        }
-        
+		} else {
+			return new ResponseEntity<String>("Only implmemented for BioSample accessions", HttpStatus.FORBIDDEN);
+		}
+	}	
+	
+	/* sample end points above */
+	/* group end points below */
+	
+	@RequestMapping(value = "/source/{source}/group", method = RequestMethod.POST, produces = "text/plain")
+	public ResponseEntity<String> accessionSourceGroupNew(@PathVariable String source, @RequestParam String apikey) {
+		return accessionSourceGroup(source, UUID.randomUUID().toString(), apikey);
+	}
 
-        File subdir = new File(getSubmissionPath(), SampleTabUtils.getSubmissionDirFile(sd.msi.submissionIdentifier).toString());
-        File outFile = new File(subdir, "sampletab.pre.txt");
-        
-        
-        SampleTabWriter writer = null;
-        try {
-            if (!subdir.exists() && !subdir.mkdirs()) {
-                throw new IOException("Unable to create parent directories");
-            }
-            writer = new SampleTabWriter(new BufferedWriter(new FileWriter(outFile)));
-            writer.write(sd);
-            log.info("wrote to "+outFile);
-        } finally {
-            if (writer != null) {
-                try {
-                    writer.close();
-                } catch (IOException e) {
-                    //do nothing
-                }
-            }
-        }
-        
-        /*
-        
-        At this point, its been written to a temporary staging area by the owner of the executing tomcat.
-        
-        A cron script (running as the internal user) will pick it up and copy it to the real file area. That script
-        will trigger Conan for downstream processing.
-        
-         */
-    }
-    
+	@RequestMapping(value = "/source/{source}/group", method = RequestMethod.POST, produces = "text/plain", consumes = "application/xml")
+	public ResponseEntity<String> saveSourceGroupNew(@PathVariable String source, @RequestParam String apikey,
+			@RequestBody BioSampleGroupType group) throws ParseException, IOException {
+		return saveSourceGroup(source, UUID.randomUUID().toString(), apikey, group);
+	}
+
+	@RequestMapping(value = "/source/{source}/group/{sourceid}", method = RequestMethod.POST, produces = "text/plain")
+	public @ResponseBody ResponseEntity<String> accessionSourceGroup(@PathVariable String source,
+			@PathVariable String sourceid, @RequestParam String apikey) {
+		// ensure source is case insensitive
+		source = source.toLowerCase();
+		
+		String keyOwner = null;
+		try {
+			keyOwner = apiKey.getAPIKeyOwner(apikey);
+		} catch (IllegalArgumentException e) {
+			return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
+		}
+		if (!apiKey.canKeyOwnerEditSource(keyOwner, source)) {
+			return new ResponseEntity<String>("That API key is not permitted for that source", HttpStatus.FORBIDDEN);
+		}
+
+		// reject if its a biosamples ID
+		if (sourceid.matches("SAMG[0-9]+")) {
+			return new ResponseEntity<String>(
+					"POST must be a new submission, use PUT for updates",
+					HttpStatus.BAD_REQUEST);
+		} 
+		
+		// reject if already acessioned (POST is a one-time operation)
+		if (accessioner.testGroup(sourceid, source)) {
+			return new ResponseEntity<String>("POST must be a new submission, use PUT for updates",
+					HttpStatus.BAD_REQUEST);
+		}
+		
+		String accession = accessioner.singleGroup(sourceid, source);
+
+		// because this is in POST, it must be a new submission, 
+		// therefore it can't have an existing submission
+		//this should never be true, but better safe than sorry....
+		Optional<String> submission = relationalDAO.getSubmissionIDForGroupAccession(accession);
+		if (submission.isPresent()) {
+			return new ResponseEntity<String>("POST must be a new submission, use PUT for updates",
+					HttpStatus.BAD_REQUEST);
+		}
+		
+		return new ResponseEntity<String>(accession, HttpStatus.ACCEPTED);
+	}
+
+	@RequestMapping(value = "/source/{source}/group/{sourceid}", method = RequestMethod.POST, produces = "text/plain", consumes = "application/xml")
+	public @ResponseBody ResponseEntity<String> saveSourceGroup(@PathVariable String source,
+			@PathVariable String sourceid, @RequestParam String apikey, @RequestBody BioSampleGroupType sample)
+					throws ParseException, IOException {
+		// ensure source is case insensitive
+		source = source.toLowerCase();
+
+		ResponseEntity<String> response = accessionSourceGroup(source, sourceid, apikey);
+
+		if (response.getStatusCode() == HttpStatus.ACCEPTED) {
+			// a request body was provided, so save it somewhere
+			// after adding the accession
+			SampleData sd = bioSampleConverter.handleBioSampleGroupType(sample);
+			String accession = response.getBody();
+			sd.scd.getNodes(SampleNode.class).iterator().next().setSampleAccession(accession);
+			
+			saveSampleData(sd, accession);			
+		}
+
+		return response;
+	}
+
+	@RequestMapping(value = "/source/{source}/group/{sourceid}", method = RequestMethod.PUT, produces = "text/plain", consumes = "application/xml")
+	public @ResponseBody ResponseEntity<String> saveGroupUpdate(@PathVariable String source, @PathVariable String sourceid,
+			@RequestParam String apikey, @RequestBody BioSampleGroupType group) throws ParseException, IOException {
+		// ensure source is case insensitive
+		source = source.toLowerCase();
+
+		String keyOwner = null;
+		try {
+			keyOwner = apiKey.getAPIKeyOwner(apikey);
+		} catch (IllegalArgumentException e) {
+			return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
+		}
+
+		if (!apiKey.canKeyOwnerEditSource(keyOwner, source)) {
+			return new ResponseEntity<String>("That API key is not permitted for that source", HttpStatus.FORBIDDEN);
+		}
+
+		// a request body was provided, so handle it
+		// after adding the accession
+		SampleData sd = bioSampleConverter.handleBioSampleGroupType(group);
+		GroupNode groupNode = sd.scd.getNodes(GroupNode.class).iterator().next();
+		ResponseEntity<String> response;
+		String accession;
+
+		// validate number of samples is not needed, since type specifies one
+		// BioSample xml element
+
+		if (sourceid.matches("SAM[NED]A?[0-9]+")) {
+			// its a biosamples ID
+			// check content accession matches address accession
+			if (groupNode.getGroupAccession() == null || !groupNode.getGroupAccession().equals(sourceid)) {
+				return new ResponseEntity<String>("Group Accession in XML must match sourceid in URL",
+						HttpStatus.CONFLICT);
+			}
+			// accept this submission
+			accession = sourceid;
+			response = new ResponseEntity<String>(accession, HttpStatus.ACCEPTED);
+		} else {
+			// its not a biosamples id, but a source id
+			accession = accessioner.retrieveGroup(sourceid, source);
+
+			// reject if not already accessioned (PUT is an update)
+			if (accession == null) {
+				return new ResponseEntity<String>("PUT must be an update, use POST for new submissions",
+						HttpStatus.BAD_REQUEST);
+			}
+			// check content accession matches address accession
+			if (groupNode.getGroupAccession() != null && !groupNode.getGroupAccession().equals(sourceid)) {
+				return new ResponseEntity<String>("Group accession in XML must match previous accession",
+						HttpStatus.CONFLICT);
+			}
+			// accept this submission
+			response = new ResponseEntity<String>(accession, HttpStatus.ACCEPTED);
+		}
+
+		//get the existing submission ID
+		Optional<String> submission = relationalDAO.getSubmissionIDForGroupAccession(accession);
+		if (submission.isPresent()) {
+			sd.msi.submissionIdentifier = submission.get();
+		} else {
+			//no existing submission ID, refer them to post
+			return new ResponseEntity<String>("PUT must be an update, use POST for new submissions",
+					HttpStatus.BAD_REQUEST);
+		}
+
+		// save the output somewhere
+		saveGroupData(sd, accession);
+
+		return response;
+
+	}
+
+	@RequestMapping(value = "/source/{source}/group/{sourceid}/submission", method = RequestMethod.GET, produces = "text/plain")
+	public @ResponseBody ResponseEntity<String> getSubmissionOfGroup(@PathVariable String source,
+			@PathVariable String sourceid, @RequestParam String apikey) {
+		// ensure source is case insensitive
+		source = source.toLowerCase();
+		String keyOwner = null;
+		try {
+			keyOwner = apiKey.getAPIKeyOwner(apikey);
+		} catch (IllegalArgumentException e) {
+			return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
+		}
+
+		if (!apiKey.canKeyOwnerEditSource(keyOwner, source)) {
+			return new ResponseEntity<String>("That API key is not permitted for that source", HttpStatus.FORBIDDEN);
+		}
+
+		if (sourceid.matches("SAMEG[0-9]+")) {
+			// its a biosamples ID
+			Optional<String> submissionId = relationalDAO.getSubmissionIDForGroupAccession(sourceid);
+			if (submissionId.isPresent()) {
+				return new ResponseEntity<String>(submissionId.get(), HttpStatus.ACCEPTED);
+			} else {
+				return new ResponseEntity<String>("group " + sourceid + " is not recognized", HttpStatus.NOT_FOUND);
+			}
+		} else {
+			return new ResponseEntity<String>("Only implmemented for BioSample accessions", HttpStatus.FORBIDDEN);
+		}
+	}	
+
+	/* group endpoints above*/
+	
+	private void saveSampleData(SampleData sd, String sampleAcc) throws IOException {
+		// TODO check this is a sensible submission to be overwriting
+		Optional<Set<String>> sampleAccs = relationalDAO.getSubmissionSampleAccessions(sampleAcc);
+		Optional<Set<String>> groupAccs = relationalDAO.getSubmissionGroupAccessions(sampleAcc);
+		if (sampleAccs.isPresent()) {
+			// if there is a previous submission, must be only this sample in it and no groups
+			if (sampleAccs.get().size() != 1 || groupAccs.isPresent()) {
+				throw new IllegalStateException("Cannot update a SampleTab submission via XML");
+			}
+
+			String oldSampleAccession = sampleAccs.get().iterator().next();
+			if (!oldSampleAccession.equals(sampleAcc)) {
+				// should never reach here, but just in case...
+				throw new IllegalStateException(
+						"Submission owns a different sample (" + oldSampleAccession + " instead of " + sampleAcc + ")");
+			}
+		}
+		saveData(sd);
+	}
+	
+	private void saveGroupData(SampleData sd, String groupAcc) throws IOException {
+		// TODO check this is a sensible submission to be overwriting
+		Optional<Set<String>> sampleAccs = relationalDAO.getSubmissionSampleAccessions(groupAcc);
+		Optional<Set<String>> groupAccs = relationalDAO.getSubmissionGroupAccessions(groupAcc);
+		if (groupAccs.isPresent()) {
+			// if there is a previous submission, must be only this gruop in it and no samples
+			if (groupAccs.get().size() != 1|| sampleAccs.isPresent()) {
+				throw new IllegalStateException("Cannot update a SampleTab submission via XML");
+			}
+
+			String oldGroupAccession = groupAccs.get().iterator().next();
+			if (!oldGroupAccession.equals(groupAcc)) {
+				// should never reach here, but just in case...
+				throw new IllegalStateException(
+						"Submission owns a different group (" + oldGroupAccession + " instead of " + groupAcc + ")");
+			}
+		}
+		saveData(sd);
+	}
+
+	private void saveData(SampleData sd) throws IOException {
+		// may need to assign a submission id
+		if (sd.msi.submissionIdentifier == null) {
+			//note that this isn't strictly an atomic operation, so may have issues with collisions between 
+			//multiple servers writing to the same place at the same time
+			int maxSubID = 0;
+			Pattern pattern = Pattern.compile("^GSB-([0-9]+)$");
+			File pathSubdir = new File(getSubmissionPath(), "GSB");
+			for (File subdir : pathSubdir.listFiles()) {
+				if (!subdir.isDirectory()) {
+					continue;
+				} else {
+					log.trace("Looking at subid " + subdir.getName() + " with pattern " + pattern.pattern());
+					Matcher match = pattern.matcher(subdir.getName());
+					if (match.matches()) {
+						log.trace("Found match with " + match.groupCount() + " groups " + match.group(1));
+						Integer subid = new Integer(match.group(1));
+						if (subid > maxSubID) {
+							maxSubID = subid;
+						}
+					}
+				}
+			}
+			maxSubID++;
+			File subDir = new File(getSubmissionPath(),
+					SampleTabUtils.getSubmissionDirFile("GSB-" + maxSubID).toString());
+			if (!subDir.mkdirs()) {
+				throw new IOException("Unable to create submission directory");
+			}
+			// can't do linux-specific group writing, so make all writable.
+			// won't be too bad, since the parent directory should not be world
+			// writable
+			subDir.setWritable(true, false);
+
+			sd.msi.submissionIdentifier = "GSB-" + maxSubID;
+		}
+
+		File subdir = new File(getSubmissionPath(),
+				SampleTabUtils.getSubmissionDirFile(sd.msi.submissionIdentifier).toString());
+		File outFile = new File(subdir, "sampletab.pre.txt");
+
+		SampleTabWriter writer = null;
+		try {
+			if (!subdir.exists() && !subdir.mkdirs()) {
+				throw new IOException("Unable to create parent directories");
+			}
+			writer = new SampleTabWriter(new BufferedWriter(new FileWriter(outFile)));
+			writer.write(sd);
+			log.info("wrote to " + outFile);
+		} finally {
+			if (writer != null) {
+				try {
+					writer.close();
+				} catch (IOException e) {
+					// do nothing
+				}
+			}
+		}
+
+		/*
+		 * 
+		 * At this point, its been written to a temporary staging area by the
+		 * owner of the executing tomcat.
+		 * 
+		 * A cron script (running as the internal user) will pick it up and copy
+		 * it to the real file area. That script will trigger Conan for
+		 * downstream processing.
+		 * 
+		 */
+	}
+
 }
