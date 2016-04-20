@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -220,7 +221,7 @@ public class SubmissionController {
             //if there are no groups, then
             //create a new group and add all non-grouped samples to it
             if (sampledata.scd.getNodes(GroupNode.class).size() == 0) {
-	            GroupNode othergroup = new GroupNode("Other Group");
+	            GroupNode othergroup = new GroupNode("Submission "+sampledata.msi.submissionIdentifier);
 	            for (SampleNode sample : sampledata.scd.getNodes(SampleNode.class)) {
 	                // check there is not an existing group first...
 	                boolean sampleInGroup = false;
@@ -243,7 +244,7 @@ public class SubmissionController {
 	            //only add the new group if it has any samples
 	            if (othergroup.getParentNodes().size() > 0){
 	                sampledata.scd.addNode(othergroup);
-	                log.info("Added Other group node");
+	                log.info("Added group node \""+othergroup.getNodeName()+"\"");
 	                // also need to accession the new node
 	            }
             }
@@ -253,7 +254,29 @@ public class SubmissionController {
             }
             
             //assign accessions to sampletab object
-            sampledata = accessioner.convert(sampledata, keyOwner);
+    		// now assign and retrieve accessions for samples that do not have them
+    		Collection<SampleNode> samples = sampledata.scd.getNodes(SampleNode.class);
+    		for (SampleNode sample : samples) {
+    			if (sample.getSampleAccession() == null) {
+    				String accession;
+    				if (sampledata.msi.submissionReferenceLayer) {
+    					accession = accessioner.singleReferenceSample(sample.getNodeName(), keyOwner);
+    				} else {
+    					accession = accessioner.singleAssaySample(sample.getNodeName(),keyOwner);
+    				}
+    				sample.setSampleAccession(accession);
+    			}
+    		}
+
+    		// now assign and retrieve accessions for groups that do not have them
+    		//group acessions MUST be assigned per submission - too similar otherwise
+    		Collection<GroupNode> groups = sampledata.scd.getNodes(GroupNode.class);
+    		for (GroupNode group : groups) {
+    			if (group.getGroupAccession() == null) {
+    				String accession = accessioner.singleGroup(group.getNodeName(), keyOwner);
+    				group.setGroupAccession(accession);
+    			}
+    		}
         
             //before doing a writeout, check all objects are either owned by the submitter, or are references
             for (SampleNode sample : sampledata.scd.getNodes(SampleNode.class)) {
