@@ -307,7 +307,7 @@ public class RestfulController {
 
 	@RequestMapping(value = "/source/{source}/group/{sourceid}", method = RequestMethod.POST, produces = "text/plain", consumes = "application/xml")
 	public @ResponseBody ResponseEntity<String> saveSourceGroup(@PathVariable String source,
-			@PathVariable String sourceid, @RequestParam String apikey, @RequestBody BioSampleGroupType sample)
+			@PathVariable String sourceid, @RequestParam String apikey, @RequestBody BioSampleGroupType group)
 					throws ParseException, IOException {
 		// ensure source is case insensitive
 		source = source.toLowerCase();
@@ -317,11 +317,11 @@ public class RestfulController {
 		if (response.getStatusCode() == HttpStatus.ACCEPTED) {
 			// a request body was provided, so save it somewhere
 			// after adding the accession
-			SampleData sd = bioSampleConverter.handleBioSampleGroupType(sample);
+			SampleData sd = bioSampleConverter.handleBioSampleGroupType(group);
 			String accession = response.getBody();
-			sd.scd.getNodes(SampleNode.class).iterator().next().setSampleAccession(accession);
+			sd.scd.getNodes(GroupNode.class).iterator().next().setGroupAccession(accession);
 			
-			saveSampleData(sd, accession);			
+			saveGroupData(sd, accession);			
 		}
 
 		return response;
