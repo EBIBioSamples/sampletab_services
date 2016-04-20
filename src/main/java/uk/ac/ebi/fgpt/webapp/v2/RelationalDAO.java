@@ -21,7 +21,7 @@ public class RelationalDAO {
 		EntityManager em = null;
 		try {
 			// connect to database
-			Resources.getInstance().getEntityManagerFactory().createEntityManager();
+			em = Resources.getInstance().getEntityManagerFactory().createEntityManager();
 			AccessibleDAO<BioSample> daoBioSample = new AccessibleDAO<>(BioSample.class, em);
 
 			// get biosample
@@ -60,7 +60,7 @@ public class RelationalDAO {
 		EntityManager em = null;
 		try {
 			// connect to database
-			Resources.getInstance().getEntityManagerFactory().createEntityManager();
+			em = Resources.getInstance().getEntityManagerFactory().createEntityManager();
 			AccessibleDAO<BioSampleGroup> daoBioSampleGroup = new AccessibleDAO<>(BioSampleGroup.class, em);
 
 			// get biosample
