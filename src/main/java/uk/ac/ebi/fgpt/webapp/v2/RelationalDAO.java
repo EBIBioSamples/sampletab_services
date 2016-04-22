@@ -50,7 +50,7 @@ public class RelationalDAO {
 				throw new IllegalStateException("bioSample cannot be null");
 			}
 		} finally {
-			if (em != null) {
+			if (em != null && em.isOpen()) {
 				em.close();
 			}
 		}
@@ -89,7 +89,7 @@ public class RelationalDAO {
 				throw new IllegalStateException("bioSample cannot be null");
 			}
 		} finally {
-			if (em != null) {
+			if (em != null && em.isOpen()) {
 				em.close();
 			}
 		}
