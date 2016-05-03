@@ -41,6 +41,7 @@ public class BioSampleConverter {
 		// storage
 		SampleData sd = new SampleData();
 		SampleNode sample = new SampleNode();
+		
 
 		for (PropertyType property : xmlSample.getProperty()) {
 			for (QualifiedValueType value : property.getQualifiedValue()) {
@@ -48,8 +49,6 @@ public class BioSampleConverter {
 					sample.setNodeName(value.getValue());
 				} else if (property.getClazz().equals("Sample Description")) {
 					sample.setSampleDescription(value.getValue());
-				} else if (property.getClazz().equals("Sample Accession")) {
-					sample.setSampleAccession(value.getValue());
 				} else if (property.getClazz().equals("Material")) {
 					AbstractNodeAttributeOntology attr = new MaterialAttribute(value.getValue());
 					sample.addAttribute(attr);
