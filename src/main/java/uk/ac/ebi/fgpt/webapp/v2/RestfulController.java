@@ -178,7 +178,7 @@ public class RestfulController {
 			// its a biosamples ID
 			// check content accession matches address accession
 			if (sampleNode.getSampleAccession() == null || !sampleNode.getSampleAccession().equals(sourceid)) {
-				return new ResponseEntity<String>("Sample Accession in XML must match sourceid in URL",
+				return new ResponseEntity<String>("Sample Accession in XML must match sourceid in URL ( "+sampleNode.getSampleAccession()+" vs "+sourceid+" )",
 						HttpStatus.CONFLICT);
 			}
 			// accept this submission
@@ -194,8 +194,8 @@ public class RestfulController {
 						HttpStatus.BAD_REQUEST);
 			}
 			// check content accession matches address accession
-			if (sampleNode.getSampleAccession() != null && !sampleNode.getSampleAccession().equals(sourceid)) {
-				return new ResponseEntity<String>("Sample accession in XML must match previous accession",
+			if (sampleNode.getSampleAccession() != null && !sampleNode.getSampleAccession().equals(accession)) {
+				return new ResponseEntity<String>("Sample accession in XML must match previous accession ( "+sampleNode.getSampleAccession()+" vs "+sourceid+" )",
 						HttpStatus.CONFLICT);
 			}
 			// accept this submission
