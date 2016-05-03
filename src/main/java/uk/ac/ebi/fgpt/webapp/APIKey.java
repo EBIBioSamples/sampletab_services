@@ -2,6 +2,8 @@ package uk.ac.ebi.fgpt.webapp;
 
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,6 +12,8 @@ import uk.ac.ebi.fgpt.sampletab.Accessioner.AccessionUser;
 
 @Service
 public class APIKey {
+    
+	private Logger log = LoggerFactory.getLogger(getClass());
 
 	@Autowired
 	private Accessioner accessioner;
@@ -62,7 +66,7 @@ public class APIKey {
     
     public boolean canKeyOwnerEditSource(String keyOwner, String source) {
         if (keyOwner == null || keyOwner.trim().length() == 0) {
-            throw new IllegalArgumentException("keyOnwer must a sensible string");
+            throw new IllegalArgumentException("keyOwner must a sensible string");
         }
         if (source == null || source.trim().length() == 0) {
             throw new IllegalArgumentException("source must be a sensible string");
@@ -76,6 +80,7 @@ public class APIKey {
             return true;
         } else {
             //deny everyone else
+        	log.info("Keyowner "+keyOwner+" attempted to access "+source);
             return false;
         }
     }
