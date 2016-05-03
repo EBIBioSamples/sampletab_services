@@ -1,10 +1,13 @@
 package uk.ac.ebi.fgpt.webapp.v2;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import org.mged.magetab.error.ErrorItemFactory;
 import org.springframework.stereotype.Service;
 
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
@@ -86,7 +89,24 @@ public class BioSampleConverter {
 			sample.addAttribute(new DerivedFromAttribute(derived));
 		}
 		for (DatabaseType db : xmlSample.getDatabase()) {
-			sample.addAttribute(new DatabaseAttribute(db.getName(), db.getID(), db.getURI()));
+			DatabaseAttribute dba = new DatabaseAttribute();
+			if (db.getName() != null && db.getName().trim().length() > 0){
+				dba.setAttributeValue(db.getName().trim());
+			}
+			if (db.getID() != null && db.getID().trim().length() > 0){
+				dba.databaseID = db.getID().trim();
+			}
+			if (db.getURI() != null && db.getURI().trim().length() > 0){
+				URI uri;
+				try {
+					uri = new URI(db.getURI().trim());
+				} catch (URISyntaxException e) {
+					throw new ParseException(false, e, ErrorItemFactory.getErrorItemFactory()
+							.generateErrorItem("Unvalid URI "+db.getURI().trim(), 1540, DatabaseType.class));
+				}
+				dba.databaseURI = uri.toString();
+			}
+			sample.addAttribute(dba);
 		}
 
 		if (xmlSample.getId() != null && xmlSample.getId().matches("SAM(N|E|D)A?[0-9]*")) {
