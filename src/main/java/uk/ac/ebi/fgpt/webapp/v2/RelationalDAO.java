@@ -38,6 +38,7 @@ public class RelationalDAO {
 				// no such sample accession in database
 				// therefore no accession
 				toReturn = Optional.empty();
+				bioSample = null;
 			}
 
 			// get submission of biosample
@@ -51,10 +52,7 @@ public class RelationalDAO {
 					// something is wrong with the database, throw an exception
 					throw new IllegalStateException("Sample " + sampleAcc + " has " + msis.size() + " MSIs");
 				}
-			} else {
-				// should never get here...
-				throw new IllegalStateException("bioSample cannot be null");
-			}
+			} 
 		} finally {
 			if (em != null && em.isOpen()) {
 				try {
@@ -84,6 +82,7 @@ public class RelationalDAO {
 				// no such sample accession in database
 				// therefore no accession
 				toReturn = Optional.empty();
+				bioSampleGroup = null;
 			}
 
 			// get submission of biosample
@@ -97,10 +96,7 @@ public class RelationalDAO {
 					// something is wrong with the database, throw an exception
 					throw new IllegalStateException("Group " + groupAcc + " has " + msis.size() + " MSIs");
 				}
-			} else {
-				// should never get here...
-				throw new IllegalStateException("bioSampleGroup cannot be null");
-			}
+			} 
 		} finally {
 			if (em != null && em.isOpen()) {
 				try {
