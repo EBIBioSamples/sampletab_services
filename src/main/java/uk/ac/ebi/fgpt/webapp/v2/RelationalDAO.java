@@ -1,11 +1,14 @@
 package uk.ac.ebi.fgpt.webapp.v2;
 
+import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
 import javax.persistence.EntityManager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
@@ -17,8 +20,11 @@ import uk.ac.ebi.fg.core_model.resources.Resources;
 @Service
 public class RelationalDAO {
 
-	public Optional getObjectFromMSIOfSampleAccession(String sampleAcc, ObjectRetrieval objectRetrieval) {
+	private Logger log = LoggerFactory.getLogger(getClass());
+
+	public Optional getObjectFromMSIOfSampleAccession(String sampleAcc, ObjectRetrieval<?> objectRetrieval) {
 		EntityManager em = null;
+		Optional<?> toReturn = Optional.empty();
 		try {
 			// connect to database
 			em = Resources.getInstance().getEntityManagerFactory().createEntityManager();
@@ -31,7 +37,7 @@ public class RelationalDAO {
 			} catch (IllegalArgumentException e) {
 				// no such sample accession in database
 				// therefore no accession
-				return Optional.empty();
+				toReturn = Optional.empty();
 			}
 
 			// get submission of biosample
@@ -40,7 +46,7 @@ public class RelationalDAO {
 				if (msis.size() == 1) {
 					MSI msi = msis.iterator().next();
 					// now we have a MSI object, we can handle it
-					return Optional.ofNullable(objectRetrieval.retriveFrom(msi));
+					toReturn = objectRetrieval.retriveFrom(msi);
 				} else {
 					// something is wrong with the database, throw an exception
 					throw new IllegalStateException("Sample " + sampleAcc + " has " + msis.size() + " MSIs");
@@ -51,13 +57,20 @@ public class RelationalDAO {
 			}
 		} finally {
 			if (em != null && em.isOpen()) {
-				em.close();
+				try {
+					em.close();
+				} catch (IllegalStateException e){
+					//log it only
+					log.warn("Exception closing entity manager", e);
+				}
 			}
 		}
+		return toReturn;
 	}
 
-	public Optional getObjectFromMSIOfGroupAccession(String groupAcc, ObjectRetrieval objectRetrieval) {
+	public Optional getObjectFromMSIOfGroupAccession(String groupAcc, ObjectRetrieval<?> objectRetrieval) {
 		EntityManager em = null;
+		Optional<?> toReturn = Optional.empty();
 		try {
 			// connect to database
 			em = Resources.getInstance().getEntityManagerFactory().createEntityManager();
@@ -70,7 +83,7 @@ public class RelationalDAO {
 			} catch (IllegalArgumentException e) {
 				// no such sample accession in database
 				// therefore no accession
-				return Optional.empty();
+				toReturn = Optional.empty();
 			}
 
 			// get submission of biosample
@@ -79,23 +92,29 @@ public class RelationalDAO {
 				if (msis.size() == 1) {
 					MSI msi = msis.iterator().next();
 					// now we have a MSI object, we can handle it
-					return Optional.ofNullable(objectRetrieval.retriveFrom(msi));
+					toReturn = objectRetrieval.retriveFrom(msi);
 				} else {
 					// something is wrong with the database, throw an exception
-					throw new IllegalStateException("Sample " + groupAcc + " has " + msis.size() + " MSIs");
+					throw new IllegalStateException("Group " + groupAcc + " has " + msis.size() + " MSIs");
 				}
 			} else {
 				// should never get here...
-				throw new IllegalStateException("bioSample cannot be null");
+				throw new IllegalStateException("bioSampleGroup cannot be null");
 			}
 		} finally {
 			if (em != null && em.isOpen()) {
-				em.close();
+				try {
+					em.close();
+				} catch (IllegalStateException e){
+					//log it only
+					log.warn("Exception closing entity manager", e);
+				}
 			}
 		}
+		return toReturn;
 	}
 
-	private interface ObjectRetrieval {
+	private interface ObjectRetrieval<T> {
 		/**
 		 * This is the function to handle the msi object. The wrapper function
 		 * will handle creating and closing the database connection if needed.
@@ -103,11 +122,11 @@ public class RelationalDAO {
 		 * @param msi
 		 * @return
 		 */
-		public abstract Optional retriveFrom(MSI msi);
+		public abstract Optional<T> retriveFrom(MSI msi);
 	}
 
 	public Optional<String> getSubmissionIDForSampleAccession(String sampleAcc) {
-		return getObjectFromMSIOfSampleAccession(sampleAcc, new ObjectRetrieval() {
+		return getObjectFromMSIOfSampleAccession(sampleAcc, new ObjectRetrieval<String>() {
 			@Override
 			public Optional<String> retriveFrom(MSI msi) {
 				return Optional.of(msi.getAcc());
@@ -116,7 +135,7 @@ public class RelationalDAO {
 	}
 
 	public Optional<Set<String>> getSubmissionSampleAccessions(String sampleAcc) {
-		return getObjectFromMSIOfSampleAccession(sampleAcc, new ObjectRetrieval() {
+		return getObjectFromMSIOfSampleAccession(sampleAcc, new ObjectRetrieval<Set<String>>() {
 			@Override
 			public Optional<Set<String>> retriveFrom(MSI msi) {
 				Set<String> sampleAccs = new HashSet<>();
@@ -129,7 +148,7 @@ public class RelationalDAO {
 	}
 
 	public Optional<Set<String>> getSubmissionGroupAccessions(String sampleAcc) {
-		return getObjectFromMSIOfSampleAccession(sampleAcc, new ObjectRetrieval() {
+		return getObjectFromMSIOfSampleAccession(sampleAcc, new ObjectRetrieval<Set<String>>() {
 			@Override
 			public Optional<Set<String>> retriveFrom(MSI msi) {
 				Set<String> groupAccs = new HashSet<>();
@@ -142,7 +161,7 @@ public class RelationalDAO {
 	}
 
 	public Optional<String> getSubmissionIDForGroupAccession(String accession) {
-		return getObjectFromMSIOfGroupAccession(accession, new ObjectRetrieval() {
+		return getObjectFromMSIOfGroupAccession(accession, new ObjectRetrieval<String>() {
 			@Override
 			public Optional<String> retriveFrom(MSI msi) {
 				return Optional.of(msi.getAcc());
