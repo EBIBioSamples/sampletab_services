@@ -18,7 +18,7 @@ public class APIKey {
 	@Autowired
 	private Accessioner accessioner;
     
-    public String getAPIKeyOwner(String apikey) {
+    public String getAPIKeyOwner(String apikey) throws IllegalArgumentException {
         //generate keys with following python:
         //  "".join([random.choice("ABCDEFGHKLMNPRTUWXY0123456789") for x in xrange(16)])
         //NB: avoid similar looking letters/numbers
