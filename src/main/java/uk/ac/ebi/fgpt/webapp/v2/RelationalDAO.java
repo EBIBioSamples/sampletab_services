@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,11 +24,12 @@ public class RelationalDAO {
 	private Logger log = LoggerFactory.getLogger(getClass());
 
 	public Optional getObjectFromMSIOfSampleAccession(String sampleAcc, ObjectRetrieval<?> objectRetrieval) {
+		EntityManagerFactory emf = Resources.getInstance().getEntityManagerFactory();
 		EntityManager em = null;
 		Optional<?> toReturn = Optional.empty();
 		try {
 			// connect to database
-			em = Resources.getInstance().getEntityManagerFactory().createEntityManager();
+			em = emf.createEntityManager();
 			AccessibleDAO<BioSample> daoBioSample = new AccessibleDAO<>(BioSample.class, em);
 
 			// get biosample
@@ -67,11 +69,12 @@ public class RelationalDAO {
 	}
 
 	public Optional getObjectFromMSIOfGroupAccession(String groupAcc, ObjectRetrieval<?> objectRetrieval) {
+		EntityManagerFactory emf = Resources.getInstance().getEntityManagerFactory();
 		EntityManager em = null;
 		Optional<?> toReturn = Optional.empty();
 		try {
 			// connect to database
-			em = Resources.getInstance().getEntityManagerFactory().createEntityManager();
+			em = emf.createEntityManager();
 			AccessibleDAO<BioSampleGroup> daoBioSampleGroup = new AccessibleDAO<>(BioSampleGroup.class, em);
 
 			// get biosample
