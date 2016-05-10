@@ -218,6 +218,38 @@ public class RestfulController {
 		return response;
 
 	}
+	
+	
+	@RequestMapping(value = "/source/{source}/sample/{sourceid}", method = RequestMethod.GET, produces = "text/plain")
+	public @ResponseBody ResponseEntity<String> getAccessionOfSample(@PathVariable String source,
+			@PathVariable String sourceid, @RequestParam String apikey) {
+
+		// ensure source is case insensitive
+		source = source.toLowerCase();
+		String keyOwner = null;
+		try {
+			keyOwner = apiKey.getAPIKeyOwner(apikey);
+		} catch (IllegalArgumentException e) {
+			return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
+		}
+
+		if (!apiKey.canKeyOwnerEditSource(keyOwner, source)) {
+			return new ResponseEntity<String>("That API key is not permitted for that source", HttpStatus.FORBIDDEN);
+		}
+
+		if (sourceid.matches("SAMEA[0-9]+")) {
+			return new ResponseEntity<String>(sourceid, HttpStatus.ACCEPTED);
+		} else if (sourceid.matches("SAME[0-9]+")) {
+			return new ResponseEntity<String>(sourceid, HttpStatus.ACCEPTED);
+		} else {
+			String acc = accessioner.retrieveAssaySample(source, sourceid);
+			if (acc == null) {
+				return new ResponseEntity<String>(sourceid+" not recognized", HttpStatus.NOT_FOUND);			
+			} else {
+				return new ResponseEntity<String>(acc, HttpStatus.ACCEPTED);
+			}
+		}
+	}
 
 	@RequestMapping(value = "/source/{source}/sample/{sourceid}/submission", method = RequestMethod.GET, produces = "text/plain")
 	public @ResponseBody ResponseEntity<String> getSubmissionOfSample(@PathVariable String source,
@@ -397,6 +429,36 @@ public class RestfulController {
 
 		return response;
 
+	}
+	
+	
+	@RequestMapping(value = "/source/{source}/group/{sourceid}", method = RequestMethod.GET, produces = "text/plain")
+	public @ResponseBody ResponseEntity<String> getAccessionOfGroup(@PathVariable String source,
+			@PathVariable String sourceid, @RequestParam String apikey) {
+
+		// ensure source is case insensitive
+		source = source.toLowerCase();
+		String keyOwner = null;
+		try {
+			keyOwner = apiKey.getAPIKeyOwner(apikey);
+		} catch (IllegalArgumentException e) {
+			return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
+		}
+
+		if (!apiKey.canKeyOwnerEditSource(keyOwner, source)) {
+			return new ResponseEntity<String>("That API key is not permitted for that source", HttpStatus.FORBIDDEN);
+		}
+
+		if (sourceid.matches("SAMEG[0-9]+")) {
+			return new ResponseEntity<String>(sourceid, HttpStatus.ACCEPTED);
+		} else {
+			String acc = accessioner.retrieveGroup(source, sourceid);
+			if (acc == null) {
+				return new ResponseEntity<String>(sourceid+" not recognized", HttpStatus.NOT_FOUND);			
+			} else {
+				return new ResponseEntity<String>(acc, HttpStatus.ACCEPTED);
+			}
+		}
 	}
 
 	@RequestMapping(value = "/source/{source}/group/{sourceid}/submission", method = RequestMethod.GET, produces = "text/plain")
