@@ -242,7 +242,7 @@ public class RestfulController {
 		} else if (sourceid.matches("SAME[0-9]+")) {
 			return new ResponseEntity<String>(sourceid, HttpStatus.ACCEPTED);
 		} else {
-			String acc = accessioner.retrieveAssaySample(source, sourceid);
+			String acc = accessioner.retrieveAssaySample(sourceid, source);
 			if (acc == null) {
 				return new ResponseEntity<String>(sourceid+" not recognized", HttpStatus.NOT_FOUND);			
 			} else {
@@ -452,7 +452,7 @@ public class RestfulController {
 		if (sourceid.matches("SAMEG[0-9]+")) {
 			return new ResponseEntity<String>(sourceid, HttpStatus.ACCEPTED);
 		} else {
-			String acc = accessioner.retrieveGroup(source, sourceid);
+			String acc = accessioner.retrieveGroup(sourceid, source);
 			if (acc == null) {
 				return new ResponseEntity<String>(sourceid+" not recognized", HttpStatus.NOT_FOUND);			
 			} else {
