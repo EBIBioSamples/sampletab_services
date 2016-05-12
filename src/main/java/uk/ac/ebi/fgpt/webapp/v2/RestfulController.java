@@ -190,7 +190,7 @@ public class RestfulController {
 
 			// reject if not already accessioned (PUT is an update)
 			if (accession == null) {
-				return new ResponseEntity<String>("PUT must be an update, use POST for new submissions",
+				return new ResponseEntity<String>("PUT must be an update, use POST for new submissions or wait for submission to be processed",
 						HttpStatus.BAD_REQUEST);
 			}
 			// check content accession matches address accession
