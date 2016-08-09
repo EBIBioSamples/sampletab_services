@@ -195,7 +195,7 @@ public class RestfulController {
 			}
 			// check content accession matches address accession
 			if (sampleNode.getSampleAccession() != null && !sampleNode.getSampleAccession().equals(accession)) {
-				return new ResponseEntity<String>("Sample accession in XML must match previous accession ( "+sampleNode.getSampleAccession()+" vs "+sourceid+" )",
+				return new ResponseEntity<String>("Sample accession in XML must match previous accession ( "+sampleNode.getSampleAccession()+" vs "+accession+" )",
 						HttpStatus.CONFLICT);
 			}
 			// accept this submission
