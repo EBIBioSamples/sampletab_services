@@ -141,7 +141,8 @@ public class RelationalDAO {
 				for (BioSample sample : msi.getSamples()) {
 					sampleAccs.add(sample.getAcc());
 				}
-				return Optional.of(sampleAccs);
+				if (sampleAccs.size() == 0) return Optional.empty();
+				else return Optional.of(sampleAccs);
 			}
 		});
 	}
@@ -154,6 +155,7 @@ public class RelationalDAO {
 				for (BioSampleGroup group : msi.getSampleGroups()) {
 					groupAccs.add(group.getAcc());
 				}
+				if (groupAccs.size() == 0) return Optional.empty();
 				return Optional.of(groupAccs);
 			}
 		});

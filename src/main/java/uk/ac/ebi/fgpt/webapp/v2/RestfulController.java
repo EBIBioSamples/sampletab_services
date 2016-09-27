@@ -498,7 +498,8 @@ public class RestfulController {
 		Optional<Set<String>> groupAccs = relationalDAO.getSubmissionGroupAccessions(sampleAcc);
 		if (sampleAccs.isPresent()) {
 			// if there is a previous submission, must be only this sample in it and no groups
-			if (sampleAccs.get().size() != 1 || groupAccs.isPresent()) {
+			if (sampleAccs.get().size() != 1 
+					|| (groupAccs.isPresent() && groupAccs.get().size() > 0)) {
 				throw new IllegalStateException("Cannot update a SampleTab submission via XML");
 			}
 
@@ -517,8 +518,9 @@ public class RestfulController {
 		Optional<Set<String>> sampleAccs = relationalDAO.getSubmissionSampleAccessions(groupAcc);
 		Optional<Set<String>> groupAccs = relationalDAO.getSubmissionGroupAccessions(groupAcc);
 		if (groupAccs.isPresent()) {
-			// if there is a previous submission, must be only this gruop in it and no samples
-			if (groupAccs.get().size() != 1|| sampleAccs.isPresent()) {
+			// if there is a previous submission, must be only this group in it and no samples
+			if (groupAccs.get().size() != 1
+					|| (sampleAccs.isPresent() && sampleAccs.get().size() > 0)) {
 				throw new IllegalStateException("Cannot update a SampleTab submission via XML");
 			}
 
