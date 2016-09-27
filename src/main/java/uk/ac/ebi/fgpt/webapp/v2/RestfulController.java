@@ -207,9 +207,7 @@ public class RestfulController {
 		if (submission.isPresent()) {
 			sd.msi.submissionIdentifier = submission.get();
 		} else {
-			//no existing submission ID, refer them to post
-			return new ResponseEntity<String>("PUT must be an update, use POST for new submissions",
-					HttpStatus.BAD_REQUEST);
+			//no existing submission ID e.g. in case of pre-accessioning
 		}
 
 		// save the output somewhere
