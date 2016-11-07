@@ -601,6 +601,10 @@ public class RestfulController {
 		 * downstream processing.
 		 * 
 		 */
+		
+		//to handle rapid re-submission, load it into database as part of HTTP query
+		//it will be reloaded by conan later
+		relationalDAO.persist(sd);
 	}
 
 }

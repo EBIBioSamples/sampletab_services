@@ -8,20 +8,26 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
+import org.apache.commons.lang.math.RandomUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
+import org.springframework.stereotype.Service;import uk.ac.ebi.arrayexpress2.sampletab.datamodel.SampleData;
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
 import uk.ac.ebi.fg.biosd.model.organizational.MSI;
+import uk.ac.ebi.fg.biosd.sampletab.loader.Loader;
+import uk.ac.ebi.fg.biosd.sampletab.persistence.Persister;
+import uk.ac.ebi.fg.biosd.sampletab.persistence.Unloader;
 import uk.ac.ebi.fg.core_model.persistence.dao.hibernate.toplevel.AccessibleDAO;
 import uk.ac.ebi.fg.core_model.resources.Resources;
+import uk.ac.ebi.utils.exceptions.ExceptionUtils;
 
 @Service
 public class RelationalDAO {
 
 	private Logger log = LoggerFactory.getLogger(getClass());
+	
+	public Loader loader = new Loader();
 
 	public Optional getObjectFromMSIOfSampleAccession(String sampleAcc, ObjectRetrieval<?> objectRetrieval) {
 		//make sure we get a clean entity manager factory each time
@@ -171,6 +177,61 @@ public class RelationalDAO {
 				return Optional.of(msi.getAcc());
 			}
 		});
+	}
+	
+	public synchronized void persist(SampleData st) {
+		MSI msi = loader.fromSampleData(st);
+		String msiAcc = st.msi.submissionIdentifier;
+		//unload previous version, if any
+		for ( int attempts = 5; ; )
+		{
+			try 
+			{			
+				log.info ( "Unloading previous version of " + msiAcc + " (if any)" );
+				new Unloader()
+					.unload ( msi );
+				log.info ( "done." );
+				break;
+			}
+			catch ( RuntimeException aex ) {
+				handleFailedPersistenceAttempt ( --attempts, aex, msiAcc );
+			}
+		}
+		//now presist it
+		for (int attempts = 5;;) {
+			try {
+				// only persist if there is something worth it persisting
+				if (msi.getSamples().size() + msi.getSampleGroups().size() > 0) {
+					log.info("Now persisting submission "+msiAcc);
+					new Persister().persist(msi);
+					log.info("Submission "+msiAcc+" persisted.");
+				}
+				break;
+			} catch (RuntimeException aex) {
+				handleFailedPersistenceAttempt(--attempts, aex, msiAcc);
+				msi = null;
+			}
+
+		}
+	}
+	
+	/**
+	 * Deal with a failed persistence attempt, to report error messages and start another attempt.
+	 * 
+	 */
+	private void handleFailedPersistenceAttempt( int attemptNo, RuntimeException attemptEx, String submissionAccession )
+	{
+		if ( attemptNo == 0 )
+			throw new RuntimeException ( "Error while saving '" + submissionAccession + "': " + attemptEx.getMessage (), attemptEx );
+
+		Throwable aex1 = ExceptionUtils.getRootCause ( attemptEx );
+		if ( !(aex1 instanceof SQLException) ) throw new RuntimeException ( 
+			"Error while saving '" + submissionAccession + "': " + attemptEx.getMessage (), attemptEx 
+		);
+		
+		log.warn ( "SQL exception: {}, this is likely due to concurrency, will retry {} more times", 
+			attemptEx.getMessage (), attemptNo 
+		);
 	}
 
 }
