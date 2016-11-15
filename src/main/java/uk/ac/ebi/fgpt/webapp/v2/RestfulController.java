@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -49,6 +50,9 @@ public class RestfulController {
 
 	@Autowired
 	private RelationalDAO relationalDAO;
+
+	@Autowired
+	private SubmissionTrackDAO submissionTrackDAO;
 	
 	@Autowired
 	private BioSampleConverter bioSampleConverter;
@@ -207,7 +211,19 @@ public class RestfulController {
 		if (submission.isPresent()) {
 			sd.msi.submissionIdentifier = submission.get();
 		} else {
-			//no existing submission ID e.g. in case of pre-accessioning
+			//try and get it from submission database
+			//not been previously loaded, but might still be in pipeline
+			try {
+				sd.msi.submissionIdentifier = submissionTrackDAO.getSubmissionForAccession(accession);
+			} catch (IncorrectResultSizeDataAccessException e) {
+				//if for some reason it is multiple submissions
+				return new ResponseEntity<String>("Sample "+accession+" is owned by multiple submissions",
+						HttpStatus.CONFLICT);			
+			}
+			
+			//no existing submission ID, refer them to post
+			return new ResponseEntity<String>("PUT must be an update, use POST for new submissions",
+					HttpStatus.BAD_REQUEST);
 		}
 
 		// save the output somewhere
@@ -417,6 +433,16 @@ public class RestfulController {
 		if (submission.isPresent()) {
 			sd.msi.submissionIdentifier = submission.get();
 		} else {
+			//try and get it from submission database
+			//not been previously loaded, but might still be in pipeline
+			try {
+				sd.msi.submissionIdentifier = submissionTrackDAO.getSubmissionForAccession(accession);
+			} catch (IncorrectResultSizeDataAccessException e) {
+				//if for some reason it is multiple submissions
+				return new ResponseEntity<String>("Sample "+accession+" is owned by multiple submissions",
+						HttpStatus.CONFLICT);			
+			}
+			
 			//no existing submission ID, refer them to post
 			return new ResponseEntity<String>("PUT must be an update, use POST for new submissions",
 					HttpStatus.BAD_REQUEST);
@@ -507,8 +533,9 @@ public class RestfulController {
 				throw new IllegalStateException(
 						"Submission owns a different sample (" + oldSampleAccession + " instead of " + sampleAcc + ")");
 			}
-		}
-		saveData(sd);
+		} 		
+		
+		saveData(sd, sampleAcc);
 	}
 	
 	private void saveGroupData(SampleData sd, String groupAcc) throws IOException {
@@ -529,12 +556,12 @@ public class RestfulController {
 						"Submission owns a different group (" + oldGroupAccession + " instead of " + groupAcc + ")");
 			}
 		}
-		saveData(sd);
+		saveData(sd, groupAcc);
 	}
 
-	private void saveData(SampleData sd) throws IOException {
+	private void saveData(SampleData sd, String accession) throws IOException {
 		// may need to assign a submission id
-		if (sd.msi.submissionIdentifier == null) {
+		if (sd.msi.submissionIdentifier == null) {			
 			//note that this isn't strictly an atomic operation, so may have issues with collisions between 
 			//multiple servers writing to the same place at the same time
 			int maxSubID = 0;
@@ -567,6 +594,8 @@ public class RestfulController {
 			subDir.setWritable(true, false);
 
 			sd.msi.submissionIdentifier = "GSB-" + maxSubID;
+			//update submission mapping in the database
+			submissionTrackDAO.setSubmissionForAccession(accession, sd.msi.submissionIdentifier);
 		}
 
 		File subdir = new File(getSubmissionPath(),
@@ -601,10 +630,6 @@ public class RestfulController {
 		 * downstream processing.
 		 * 
 		 */
-		
-		//to handle rapid re-submission, load it into database as part of HTTP query
-		//it will be reloaded by conan later
-		relationalDAO.persist(sd);
 	}
 
 }
