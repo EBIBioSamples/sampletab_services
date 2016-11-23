@@ -1,5 +1,7 @@
 package uk.ac.ebi.fgpt.webapp.v2;
 
+import java.util.Optional;
+
 import javax.sql.DataSource;
 
 import org.slf4j.Logger;
@@ -24,11 +26,11 @@ public class SubmissionTrackDAO{
 	
 	// CREATE TABLE SUBMISSIONS (accession varchar(255), submission varchar(255), CONSTRAINT submissions_accessions PRIMARY KEY (accession));
 	
-	public String getSubmissionForAccession(String accession) {
+	public Optional<String> getSubmissionForAccession(String accession) {
 		try {
-			return jdbcTemplate.queryForObject("SELECT submission FROM SUBMISSIONS WHERE accession = ?", String.class, accession);
+			return Optional.ofNullable(jdbcTemplate.queryForObject("SELECT submission FROM SUBMISSIONS WHERE accession = ?", String.class, accession));
 		} catch (EmptyResultDataAccessException e) {
-			return null;
+			return Optional.empty();
 		} 
 	}
 

@@ -212,18 +212,22 @@ public class RestfulController {
 			sd.msi.submissionIdentifier = submission.get();
 		} else {
 			//try and get it from submission database
+			Optional<String> possibleSubmissionId = Optional.empty();
 			//not been previously loaded, but might still be in pipeline
 			try {
-				sd.msi.submissionIdentifier = submissionTrackDAO.getSubmissionForAccession(accession);
+				possibleSubmissionId = submissionTrackDAO.getSubmissionForAccession(accession);
 			} catch (IncorrectResultSizeDataAccessException e) {
 				//if for some reason it is multiple submissions
 				return new ResponseEntity<String>("Sample "+accession+" is owned by multiple submissions",
 						HttpStatus.CONFLICT);			
 			}
-			
-			//no existing submission ID, refer them to post
-			return new ResponseEntity<String>("PUT must be an update, use POST for new submissions",
-					HttpStatus.BAD_REQUEST);
+			if (possibleSubmissionId.isPresent()) {
+				sd.msi.submissionIdentifier = possibleSubmissionId.get();
+			} else {
+				//no existing submission ID
+				//must be a pre-accessioned sample
+				//saving it will create a new submission identifier for it
+			}
 		}
 
 		// save the output somewhere
@@ -252,15 +256,15 @@ public class RestfulController {
 		}
 
 		if (sourceid.matches("SAMEA[0-9]+")) {
-			return new ResponseEntity<String>(sourceid, HttpStatus.ACCEPTED);
+			return new ResponseEntity<String>(sourceid, HttpStatus.OK);
 		} else if (sourceid.matches("SAME[0-9]+")) {
-			return new ResponseEntity<String>(sourceid, HttpStatus.ACCEPTED);
+			return new ResponseEntity<String>(sourceid, HttpStatus.OK);
 		} else {
 			String acc = accessioner.retrieveAssaySample(sourceid, source);
 			if (acc == null) {
 				return new ResponseEntity<String>(sourceid+" not recognized", HttpStatus.NOT_FOUND);			
 			} else {
-				return new ResponseEntity<String>(acc, HttpStatus.ACCEPTED);
+				return new ResponseEntity<String>(acc, HttpStatus.OK);
 			}
 		}
 	}
@@ -283,11 +287,23 @@ public class RestfulController {
 
 		if (sourceid.matches("SAM[NED]A?[0-9]+")) {
 			// its a biosamples ID
+			//try to get the submission from the core database
 			Optional<String> submissionId = relationalDAO.getSubmissionIDForSampleAccession(sourceid);
 			if (submissionId.isPresent()) {
-				return new ResponseEntity<String>(submissionId.get(), HttpStatus.ACCEPTED);
+				return new ResponseEntity<String>(submissionId.get(), HttpStatus.OK);
 			} else {
-				return new ResponseEntity<String>("sample " + sourceid + " is not recognized", HttpStatus.NOT_FOUND);
+				//try to get the submission from the accession database
+				try {
+					submissionId = submissionTrackDAO.getSubmissionForAccession(sourceid);
+				} catch (IncorrectResultSizeDataAccessException e) {
+					return new ResponseEntity<String>("Sample "+sourceid+" is owned by multiple submissions",
+							HttpStatus.CONFLICT);			
+				}
+				if (submissionId.isPresent()) {
+					return new ResponseEntity<String>(submissionId.get(), HttpStatus.OK);					
+				} else { 
+					return new ResponseEntity<String>("sample " + sourceid + " is not recognized", HttpStatus.NOT_FOUND);
+				}
 			}
 		} else {
 			return new ResponseEntity<String>("Only implmemented for BioSample accessions", HttpStatus.FORBIDDEN);
@@ -434,18 +450,23 @@ public class RestfulController {
 			sd.msi.submissionIdentifier = submission.get();
 		} else {
 			//try and get it from submission database
+			Optional<String> possibleSubmissionId = Optional.empty();
 			//not been previously loaded, but might still be in pipeline
 			try {
-				sd.msi.submissionIdentifier = submissionTrackDAO.getSubmissionForAccession(accession);
+				possibleSubmissionId = submissionTrackDAO.getSubmissionForAccession(accession);
 			} catch (IncorrectResultSizeDataAccessException e) {
 				//if for some reason it is multiple submissions
 				return new ResponseEntity<String>("Sample "+accession+" is owned by multiple submissions",
 						HttpStatus.CONFLICT);			
 			}
-			
-			//no existing submission ID, refer them to post
-			return new ResponseEntity<String>("PUT must be an update, use POST for new submissions",
-					HttpStatus.BAD_REQUEST);
+
+			if (possibleSubmissionId.isPresent()) {
+				sd.msi.submissionIdentifier = possibleSubmissionId.get();
+			} else {
+				//no existing submission ID
+				//must be pre-accessioned
+				//saving it will create a new submission identifier for it
+			}
 		}
 
 		// save the output somewhere
@@ -474,13 +495,13 @@ public class RestfulController {
 		}
 
 		if (sourceid.matches("SAMEG[0-9]+")) {
-			return new ResponseEntity<String>(sourceid, HttpStatus.ACCEPTED);
+			return new ResponseEntity<String>(sourceid, HttpStatus.OK);
 		} else {
 			String acc = accessioner.retrieveGroup(sourceid, source);
 			if (acc == null) {
 				return new ResponseEntity<String>(sourceid+" not recognized", HttpStatus.NOT_FOUND);			
 			} else {
-				return new ResponseEntity<String>(acc, HttpStatus.ACCEPTED);
+				return new ResponseEntity<String>(acc, HttpStatus.OK);
 			}
 		}
 	}
@@ -505,7 +526,7 @@ public class RestfulController {
 			// its a biosamples ID
 			Optional<String> submissionId = relationalDAO.getSubmissionIDForGroupAccession(sourceid);
 			if (submissionId.isPresent()) {
-				return new ResponseEntity<String>(submissionId.get(), HttpStatus.ACCEPTED);
+				return new ResponseEntity<String>(submissionId.get(), HttpStatus.OK);
 			} else {
 				return new ResponseEntity<String>("group " + sourceid + " is not recognized", HttpStatus.NOT_FOUND);
 			}

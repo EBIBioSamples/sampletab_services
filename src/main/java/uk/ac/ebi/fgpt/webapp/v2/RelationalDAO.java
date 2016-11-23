@@ -78,6 +78,9 @@ public class RelationalDAO {
 	}
 
 	public Optional getObjectFromMSIOfGroupAccession(String groupAcc, ObjectRetrieval<?> objectRetrieval) {
+		//make sure we get a clean entity manager factory each time
+		//this is so that we can reflect the latest data
+		Resources.getInstance().reset();
 		EntityManagerFactory emf = Resources.getInstance().getEntityManagerFactory();
 		EntityManager em = null;
 		Optional<?> toReturn = Optional.empty();
