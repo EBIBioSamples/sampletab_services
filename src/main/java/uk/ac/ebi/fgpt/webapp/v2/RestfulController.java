@@ -120,7 +120,9 @@ public class RestfulController {
 		// because this is in POST, it must be a new submission, 
 		// therefore it can't have an existing submission
 		//this should never be true, but better safe than sorry....
+		long timeBefore = System.nanoTime();
 		Optional<String> submission = relationalDAO.getSubmissionIDForSampleAccession(accession);
+		log.info("Time for relationalDAO.getSubmissionIDForSampleAccession = "+(System.nanoTime()-timeBefore)+"ns");
 		if (submission.isPresent()) {
 			return new ResponseEntity<String>("POST must be a new submission, use PUT for updates",
 					HttpStatus.BAD_REQUEST);
@@ -207,7 +209,10 @@ public class RestfulController {
 		}
 
 		//get the existing submission ID
+		long timeBefore = System.nanoTime();
 		Optional<String> submission = relationalDAO.getSubmissionIDForSampleAccession(accession);
+		log.info("Time for relationalDAO.getSubmissionIDForSampleAccession = "+(System.nanoTime()-timeBefore)+"ns");
+		
 		if (submission.isPresent()) {
 			sd.msi.submissionIdentifier = submission.get();
 		} else {
@@ -215,7 +220,9 @@ public class RestfulController {
 			Optional<String> possibleSubmissionId = Optional.empty();
 			//not been previously loaded, but might still be in pipeline
 			try {
+				timeBefore = System.nanoTime();
 				possibleSubmissionId = submissionTrackDAO.getSubmissionForAccession(accession);
+				log.info("Time for submissionTrackDAO.getSubmissionForAccession = "+(System.nanoTime()-timeBefore)+"ns");
 			} catch (IncorrectResultSizeDataAccessException e) {
 				//if for some reason it is multiple submissions
 				return new ResponseEntity<String>("Sample "+accession+" is owned by multiple submissions",
@@ -539,8 +546,12 @@ public class RestfulController {
 	
 	private void saveSampleData(SampleData sd, String sampleAcc) throws IOException {
 		// TODO check this is a sensible submission to be overwriting
+		long timeBefore = System.nanoTime();
 		Optional<Set<String>> sampleAccs = relationalDAO.getSubmissionSampleAccessions(sampleAcc);
+		log.info("Time for relationalDAO.getSubmissionSampleAccessions = "+(System.nanoTime()-timeBefore)+"ns");
+		timeBefore = System.nanoTime();
 		Optional<Set<String>> groupAccs = relationalDAO.getSubmissionGroupAccessions(sampleAcc);
+		log.info("Time for relationalDAO.getSubmissionGroupAccessions = "+(System.nanoTime()-timeBefore)+"ns");
 		if (sampleAccs.isPresent()) {
 			// if there is a previous submission, must be only this sample in it and no groups
 			if (sampleAccs.get().size() != 1 
@@ -585,6 +596,7 @@ public class RestfulController {
 		if (sd.msi.submissionIdentifier == null) {			
 			//note that this isn't strictly an atomic operation, so may have issues with collisions between 
 			//multiple servers writing to the same place at the same time
+			long timeBefore = System.nanoTime();
 			int maxSubID = 0;
 			Pattern pattern = Pattern.compile("^GSB-([0-9]+)$");
 			File pathSubdir = new File(getSubmissionPath(), "GSB");
@@ -613,10 +625,13 @@ public class RestfulController {
 			// won't be too bad, since the parent directory should not be world
 			// writable
 			subDir.setWritable(true, false);
-
+			log.info("Time to find sub dir = "+(System.nanoTime()-timeBefore)+"ns");
+			
 			sd.msi.submissionIdentifier = "GSB-" + maxSubID;
 			//update submission mapping in the database
+			timeBefore = System.nanoTime();
 			submissionTrackDAO.setSubmissionForAccession(accession, sd.msi.submissionIdentifier);
+			log.info("Time to setSubmissionForAccession = "+(System.nanoTime()-timeBefore)+"ns");
 		}
 
 		File subdir = new File(getSubmissionPath(),
@@ -628,9 +643,11 @@ public class RestfulController {
 			if (!subdir.exists() && !subdir.mkdirs()) {
 				throw new IOException("Unable to create parent directories");
 			}
+			long timeBefore = System.nanoTime();
 			writer = new SampleTabWriter(new BufferedWriter(new FileWriter(outFile)));
 			writer.write(sd);
 			log.info("wrote to " + outFile);
+			log.info("Time to write to SampleTab = "+(System.nanoTime()-timeBefore)+"ns");
 		} finally {
 			if (writer != null) {
 				try {
