@@ -21,7 +21,7 @@ public class Config {
 	public Config() {}
 	
 		
-	@Bean
+	@Bean(name="accessionJdbcTemplate")
 	public JdbcTemplate getJdbcTemplate() {
 		JndiDataSourceLookup dataSourceLookup = new JndiDataSourceLookup();
 		DataSource accessionDataSource = dataSourceLookup.getDataSource("java:comp/env/jdbc/accessionDB");
