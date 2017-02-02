@@ -75,8 +75,7 @@ public class RelationalDAO {
 		} catch (EmptyResultDataAccessException e) {
 			return Optional.empty();
 		} 		
-		Set<String> samplesSet = new HashSet<>();
-		samplesSet.addAll(samples);
+		Set<String> samplesSet = new HashSet<>(samples);
 		return Optional.of(samplesSet);
 	}
 
@@ -94,10 +93,8 @@ public class RelationalDAO {
 		} catch (EmptyResultDataAccessException e) {
 			return Optional.empty();
 		} 		
-		Set<String> samplesSet = new HashSet<>();
-		samplesSet.addAll(samples);
+		Set<String> samplesSet = new HashSet<>(samples);
 		return Optional.of(samplesSet);
-		
 	}
 
 }

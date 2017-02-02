@@ -27,6 +27,13 @@ public class Config {
 		DataSource accessionDataSource = dataSourceLookup.getDataSource("java:comp/env/jdbc/accessionDB");
 		return new JdbcTemplate(accessionDataSource);		
 	}
+	
+	@Bean(name="hibernateJdbcTemplate")
+	public JdbcTemplate getHibernateJdbcTemplate() {
+		JndiDataSourceLookup dataSourceLookup = new JndiDataSourceLookup();
+		DataSource accessionDataSource = dataSourceLookup.getDataSource("java:comp/env/jdbc/hibernateDB");
+		return new JdbcTemplate(accessionDataSource);		
+	}
 		
 	
 	@Bean
