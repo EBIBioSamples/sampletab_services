@@ -69,8 +69,9 @@ public class RelationalDAO {
 		List<String> samples = null;
 		try {
 			samples = jdbcTemplate.queryForList(
-					"SELECT BIO_PRODUCT.ACC FROM MSI JOIN MSI_SAMPLE ON MSI.ID = MSI_SAMPLE.MSI_ID "
-					+ "JOIN BIO_PRODUCT ON BIO_PRODUCT.ID = MSI_SAMPLE.SAMPLE_ID WHERE MSI.ACC = ?", 
+					"SELECT BIO_PRODUCT.ACC FROM BIO_PRODUCT JOIN MSI_SAMPLE ON MSI_SAMPLE.SAMPLE_ID = BIO_PRODUCT.ID "
+					+ " JOIN MSI ON MSI_SAMPLE.MSI_ID = MSI.ID"
+					+ " WHERE MSI.ACC = ?", 
 							String.class, subId.get());
 		} catch (EmptyResultDataAccessException e) {
 			return Optional.empty();
@@ -87,8 +88,9 @@ public class RelationalDAO {
 		List<String> samples = null;
 		try {
 			samples = jdbcTemplate.queryForList(
-					"SELECT BIO_SMP_GRP.ACC FROM MSI JOIN MSI_SAMPLE_GROUP ON MSI.ID = MSI_SAMPLE_GROUP.MSI_ID "
-					+ "JOIN BIO_SMP_GRP ON BIO_SMP_GRP.ID = MSI_SAMPLE_GROUP.SAMPLE_ID WHERE MSI.ACC = ?", 
+					"SELECT BIO_SMP_GRP.ACC FROM BIO_SMP_GRP JOIN MSI_SAMPLE_GROUP ON MSI_SAMPLE_GROUP.GROUP_ID = BIO_SMP_GRP.ID "
+					+ " JOIN MSI ON  MSI_SAMPLE_GROUP.MSI_ID = MSI.ID "
+					+ " WHERE MSI.ACC = ? ", 
 							String.class, subId.get());
 		} catch (EmptyResultDataAccessException e) {
 			return Optional.empty();
