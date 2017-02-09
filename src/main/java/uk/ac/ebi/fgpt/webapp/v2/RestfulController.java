@@ -121,8 +121,8 @@ public class RestfulController {
 		// therefore it can't have an existing submission
 		//this should never be true, but better safe than sorry....
 		long timeBefore = System.nanoTime();
-		//Optional<String> submission = relationalDAO.getSubmissionIDForSampleAccession(accession);
-		Optional<String> submission = submissionTrackDAO.getSubmissionForAccession(accession);
+		Optional<String> submission = relationalDAO.getSubmissionIDForSampleAccession(accession);
+		//Optional<String> submission = submissionTrackDAO.getSubmissionForAccession(accession);
 		log.info("Time for submissionTrackDAO.getSubmissionForAccession = "+(System.nanoTime()-timeBefore)+"ns");
 		if (submission.isPresent()) {
 			return new ResponseEntity<String>("POST must be a new submission, use PUT for updates",
@@ -211,8 +211,8 @@ public class RestfulController {
 
 		//get the existing submission ID
 		long timeBefore = System.nanoTime();
-		//Optional<String> submission = relationalDAO.getSubmissionIDForSampleAccession(accession);
-		Optional<String> submission = submissionTrackDAO.getSubmissionForAccession(accession);
+		Optional<String> submission = relationalDAO.getSubmissionIDForSampleAccession(accession);
+		//Optional<String> submission = submissionTrackDAO.getSubmissionForAccession(accession);
 		log.info("Time for submissionTrackDAO.getSubmissionForAccession = "+(System.nanoTime()-timeBefore)+"ns");
 		
 		if (submission.isPresent()) {
@@ -297,8 +297,8 @@ public class RestfulController {
 		if (sourceid.matches("SAM[NED]A?[0-9]+")) {
 			// its a biosamples ID
 			//try to get the submission from the core database
-			//Optional<String> submissionId = relationalDAO.getSubmissionIDForSampleAccession(sourceid);
-			Optional<String> submissionId = submissionTrackDAO.getSubmissionForAccession(sourceid);
+			Optional<String> submissionId = relationalDAO.getSubmissionIDForSampleAccession(sourceid);
+			//Optional<String> submissionId = submissionTrackDAO.getSubmissionForAccession(sourceid);
 			if (submissionId.isPresent()) {
 				return new ResponseEntity<String>(submissionId.get(), HttpStatus.OK);
 			} else {
