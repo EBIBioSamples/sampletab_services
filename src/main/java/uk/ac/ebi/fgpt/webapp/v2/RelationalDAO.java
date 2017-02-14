@@ -49,7 +49,7 @@ public class RelationalDAO {
 		try {
 			submissions = jdbcTemplate.queryForList(
 							"SELECT MSI.ACC FROM MSI JOIN MSI_SAMPLE_GROUP ON MSI.ID = MSI_SAMPLE_GROUP.MSI_ID "
-							+ "JOIN BIO_SMP_GRP ON BIO_SMP_GRP.ID = MSI_SAMPLE_GROUP.SAMPLE_ID WHERE BIO_SMP_GRP.ACC = ?", 
+							+ "JOIN BIO_SMP_GRP ON BIO_SMP_GRP.ID = MSI_SAMPLE_GROUP.GROUP_ID WHERE BIO_SMP_GRP.ACC = ?", 
 							String.class, accession);
 		} catch (EmptyResultDataAccessException e) {
 			return Optional.empty();
