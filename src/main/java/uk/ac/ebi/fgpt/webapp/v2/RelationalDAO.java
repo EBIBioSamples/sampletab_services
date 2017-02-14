@@ -35,7 +35,9 @@ public class RelationalDAO {
 			return Optional.empty();
 		} 
 		
-		if (submissions.size() != 1) {
+		if (submissions.size() == 0) {
+			return Optional.empty();
+		} else if (submissions.size() > 1) {
 			throw new IllegalStateException("Sample " + accession + " has " + submissions.size() + " MSIs");
 		} else {
 			return Optional.of(submissions.get(0));
@@ -52,8 +54,10 @@ public class RelationalDAO {
 		} catch (EmptyResultDataAccessException e) {
 			return Optional.empty();
 		} 
-		
-		if (submissions.size() != 1) {
+
+		if (submissions.size() == 0) {
+			return Optional.empty();
+		} else if (submissions.size() > 1) {
 			throw new IllegalStateException("Group " + accession + " has " + submissions.size() + " MSIs");
 		} else {
 			return Optional.of(submissions.get(0));
@@ -76,6 +80,11 @@ public class RelationalDAO {
 		} catch (EmptyResultDataAccessException e) {
 			return Optional.empty();
 		} 		
+		
+		if (samples.size() == 0) {
+			return Optional.empty();
+		}
+		
 		Set<String> samplesSet = new HashSet<>(samples);
 		return Optional.of(samplesSet);
 	}
@@ -95,6 +104,11 @@ public class RelationalDAO {
 		} catch (EmptyResultDataAccessException e) {
 			return Optional.empty();
 		} 		
+
+		if (samples.size() == 0) {
+			return Optional.empty();
+		}
+		
 		Set<String> samplesSet = new HashSet<>(samples);
 		return Optional.of(samplesSet);
 	}
