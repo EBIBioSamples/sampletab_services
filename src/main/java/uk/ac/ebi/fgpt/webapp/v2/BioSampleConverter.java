@@ -23,6 +23,7 @@ import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.DerivedFro
 import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.MaterialAttribute;
 import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.OrganismAttribute;
 import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.SexAttribute;
+import uk.ac.ebi.arrayexpress2.sampletab.datamodel.scd.node.attribute.UnitAttribute;
 import uk.ac.ebi.fgpt.sampletab.utils.samplegroupexport.BioSampleGroupType;
 import uk.ac.ebi.fgpt.sampletab.utils.samplegroupexport.BioSampleType;
 import uk.ac.ebi.fgpt.sampletab.utils.samplegroupexport.DatabaseType;
@@ -184,15 +185,19 @@ public class BioSampleConverter {
 					}
 				} else if (property.isCharacteristic()) {
 					CharacteristicAttribute attr = new CharacteristicAttribute(property.getClazz(), value.getValue());
+					if (value.getUnit() != null) {
+						attr.unit = new UnitAttribute(value.getUnit());
+					}
 					group.addAttribute(attr);
-					// TODO unit
 					if (value.getTermSourceREF() != null) {
 						handleTermSource(value.getTermSourceREF(), attr, sd);
 					}
 				} else if (property.isComment()) {
 					CommentAttribute attr = new CommentAttribute(property.getClazz(), value.getValue());
+					if (value.getUnit() != null) {
+						attr.unit = new UnitAttribute(value.getUnit());
+					}
 					group.addAttribute(attr);
-					// TODO unit
 					if (value.getTermSourceREF() != null) {
 						handleTermSource(value.getTermSourceREF(), attr, sd);
 					}
